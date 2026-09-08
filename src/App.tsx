@@ -9,6 +9,8 @@ import FluxoCaixaPage from '@/pages/FluxoCaixa';
 import RelatoriosPage from '@/pages/Relatorios';
 import ImportacaoPage from '@/pages/Importacao';
 import ConfiguracoesPage from '@/pages/Configuracoes';
+import MargemContratosPage from '@/pages/MargemContratos';
+import ContratoDetalhePage from '@/pages/ContratoDetalhe';
 import NotFoundPage from '@/pages/NotFound';
 
 export default function App() {
@@ -23,6 +25,8 @@ export default function App() {
               <Route path="contas-receber" element={<ContasReceberPage />} />
               <Route path="fluxo-caixa" element={<FluxoCaixaPage />} />
               <Route path="relatorios" element={<RelatoriosPage />} />
+              <Route path="margem-contratos" element={<MargemContratosPage />} />
+              <Route path="margem-contratos/:id" element={<ContratoDetalhePage />} />
               <Route path="importacao" element={<ImportacaoPage />} />
               <Route path="configuracoes" element={<ConfiguracoesPage />} />
               <Route path="*" element={<NotFoundPage />} />

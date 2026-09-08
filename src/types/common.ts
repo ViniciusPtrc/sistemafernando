@@ -17,6 +17,12 @@ export type PeriodoPreset =
   | 'este_mes'
   | 'mes_anterior'
   | 'ultimos_3_meses'
+  | 'ultimos_6_meses'
+  | 'ultimos_12_meses'
+  | 'ultimos_24_meses'
+  | 'ultimos_36_meses'
+  | 'este_ano'
+  | 'ano_anterior'
   | 'personalizado';
 
 export interface RangeData {

@@ -25,6 +25,8 @@ const receivableSchema = new Schema(
 
     collectionChannel: { type: String, default: '' },
     contractNumber: { type: String, default: '' },
+    /** Vínculo com o módulo de Margem de Contratos (opcional). */
+    contractId: { type: Schema.Types.ObjectId, ref: 'Contract', default: null, index: true },
     titleCode: { type: String, default: '' },
     notes: { type: String, default: '' },
 

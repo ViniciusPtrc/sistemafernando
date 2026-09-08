@@ -11,7 +11,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "seed": "tsx src/imports/seed.ts",
-    "test": "tsx --test src/imports/__tests__/normalizeStatus.test.ts src/imports/__tests__/totvsReceivableAdapter.test.ts src/imports/__tests__/ercPagarParser.test.ts",
+    "test": "tsx --test src/imports/__tests__/normalizeStatus.test.ts src/imports/__tests__/totvsReceivableAdapter.test.ts src/imports/__tests__/totvsPayableAdapter.test.ts src/imports/__tests__/ercPagarParser.test.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint \"src/**/*.ts\""
   },

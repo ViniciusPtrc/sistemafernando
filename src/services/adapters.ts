@@ -4,13 +4,23 @@
  * aqui mantém componentes e páginas intactos.
  */
 import type {
+  ClassificacaoMargem,
   ContaPagar,
   ContaReceber,
+  Contrato,
+  ContratoMargemDetalhe,
+  CustoContrato,
   DashboardFinanceiro,
   LancamentoFluxoCaixa,
+  MargemMensal,
+  MargemPorContrato,
+  MargemResumo,
+  PayableVinculavel,
   PontoFluxoCaixa,
+  ReceitaVinculavel,
   RespostaPaginada,
   StatusConta,
+  StatusContrato,
 } from '@/types';
 import type { CompanyMetrics } from '@/types';
 
@@ -388,4 +398,249 @@ export interface CashFlowSummaryDTO {
   totalInflowCents: number;
   totalOutflowCents: number;
   closingBalanceCents: number;
+}
+
+/* ----------------------------- MARGEM DE CONTRATOS ----------------------------- */
+
+export interface ContractDTO {
+  id: string;
+  companyId: string;
+  number: string;
+  customerName: string;
+  customerDocument: string;
+  contractedValueCents: number;
+  startDate: string | null;
+  endDate: string | null;
+  status: StatusContrato;
+  notes: string;
+}
+
+export function mapContract(dto: ContractDTO): Contrato {
+  return {
+    id: dto.id,
+    companyId: dto.companyId,
+    numero: dto.number,
+    clienteNome: dto.customerName,
+    clienteDocumento: dto.customerDocument,
+    valorContratadoCents: dto.contractedValueCents,
+    dataInicio: dto.startDate ?? '',
+    dataFim: dto.endDate,
+    status: dto.status,
+    observacoes: dto.notes,
+  };
+}
+
+interface ClassificacaoDTO {
+  nivel: ClassificacaoMargem['nivel'];
+  label: string;
+}
+
+export interface MarginSummaryDTO {
+  period: string;
+  range: { from: string | null; to: string | null };
+  contratosNoEscopo: number;
+  receitaCents: number;
+  custosCents: number;
+  lucroCents: number;
+  margemPct: number | null;
+  receitaRecebidaCents: number;
+  receitaPendenteCents: number;
+  custosProjetadosCents: number;
+  lucroProjetadoCents: number;
+  margemProjetadaPct: number | null;
+  classificacao: ClassificacaoDTO;
+}
+
+export function mapMarginSummary(dto: MarginSummaryDTO): MargemResumo {
+  return {
+    period: dto.period,
+    range: dto.range,
+    contratosNoEscopo: dto.contratosNoEscopo,
+    receita: centsToReais(dto.receitaCents),
+    custos: centsToReais(dto.custosCents),
+    lucro: centsToReais(dto.lucroCents),
+    margemPct: dto.margemPct,
+    receitaRecebida: centsToReais(dto.receitaRecebidaCents),
+    receitaPendente: centsToReais(dto.receitaPendenteCents),
+    custosProjetados: centsToReais(dto.custosProjetadosCents),
+    lucroProjetado: centsToReais(dto.lucroProjetadoCents),
+    margemProjetadaPct: dto.margemProjetadaPct,
+    classificacao: dto.classificacao,
+  };
+}
+
+export interface MarginMonthlyDTO {
+  mes: string;
+  chave: string;
+  receitaCents: number;
+  custosCents: number;
+  lucroCents: number;
+  margemPct: number | null;
+}
+
+export function mapMarginMonthly(dto: MarginMonthlyDTO): MargemMensal {
+  return {
+    mes: dto.mes,
+    chave: dto.chave,
+    receita: centsToReais(dto.receitaCents),
+    custos: centsToReais(dto.custosCents),
+    lucro: centsToReais(dto.lucroCents),
+    margemPct: dto.margemPct,
+  };
+}
+
+export interface MarginByContractDTO {
+  contractId: string;
+  number: string;
+  customerName: string;
+  status: StatusContrato;
+  receitaCents: number;
+  custosCents: number;
+  lucroCents: number;
+  margemPct: number | null;
+  classificacao: ClassificacaoDTO;
+}
+
+export function mapMarginByContract(dto: MarginByContractDTO): MargemPorContrato {
+  return {
+    contractId: dto.contractId,
+    numero: dto.number,
+    clienteNome: dto.customerName,
+    status: dto.status,
+    receita: centsToReais(dto.receitaCents),
+    custos: centsToReais(dto.custosCents),
+    lucro: centsToReais(dto.lucroCents),
+    margemPct: dto.margemPct,
+    classificacao: dto.classificacao,
+  };
+}
+
+export interface ContractMarginDTO {
+  contract: {
+    id: string;
+    companyId: string;
+    number: string;
+    customerName: string;
+    customerDocument: string;
+    contractedValueCents: number;
+    status: StatusContrato;
+    startDate: string | null;
+    endDate: string | null;
+    notes: string;
+  };
+  period: string;
+  range: { from: string | null; to: string | null };
+  receitaCents: number;
+  receitaRecebidaCents: number;
+  receitaPendenteCents: number;
+  custosRealizadosCents: number;
+  custosProjetadosCents: number;
+  lucroAtualCents: number;
+  lucroProjetadoCents: number;
+  margemAtualPct: number | null;
+  margemProjetadaPct: number | null;
+  classificacao: ClassificacaoDTO;
+}
+
+export function mapContractMargin(dto: ContractMarginDTO): ContratoMargemDetalhe {
+  return {
+    contrato: {
+      id: dto.contract.id,
+      companyId: dto.contract.companyId,
+      numero: dto.contract.number,
+      clienteNome: dto.contract.customerName,
+      clienteDocumento: dto.contract.customerDocument,
+      valorContratadoCents: dto.contract.contractedValueCents,
+      status: dto.contract.status,
+      dataInicio: dto.contract.startDate ?? '',
+      dataFim: dto.contract.endDate,
+      observacoes: dto.contract.notes,
+    },
+    period: dto.period,
+    range: dto.range,
+    receita: centsToReais(dto.receitaCents),
+    receitaRecebida: centsToReais(dto.receitaRecebidaCents),
+    receitaPendente: centsToReais(dto.receitaPendenteCents),
+    custosRealizados: centsToReais(dto.custosRealizadosCents),
+    custosProjetados: centsToReais(dto.custosProjetadosCents),
+    lucroAtual: centsToReais(dto.lucroAtualCents),
+    lucroProjetado: centsToReais(dto.lucroProjetadoCents),
+    margemAtualPct: dto.margemAtualPct,
+    margemProjetadaPct: dto.margemProjetadaPct,
+    classificacao: dto.classificacao,
+  };
+}
+
+export interface ContractCostDTO {
+  id: string;
+  contractId: string;
+  origin: 'manual' | 'payable';
+  type: 'realizado' | 'projetado';
+  payableId: string | null;
+  description: string;
+  category: string;
+  categoryName: string;
+  supplierName: string;
+  amountCents: number;
+  date: string | null;
+  notes: string;
+}
+
+export function mapContractCost(dto: ContractCostDTO): CustoContrato {
+  return {
+    id: dto.id,
+    contractId: dto.contractId,
+    origem: dto.origin,
+    tipo: dto.type,
+    payableId: dto.payableId,
+    descricao: dto.description,
+    categoria: dto.category,
+    categoriaNome: dto.categoryName,
+    fornecedorNome: dto.supplierName,
+    valor: centsToReais(dto.amountCents),
+    data: dto.date,
+    observacoes: dto.notes,
+  };
+}
+
+export interface LinkableReceivableDTO {
+  id: string;
+  customerName: string;
+  documentNumber: string;
+  dueDate: string | null;
+  amountCents: number;
+  status: string;
+}
+
+export function mapLinkableReceivable(dto: LinkableReceivableDTO): ReceitaVinculavel {
+  return {
+    id: dto.id,
+    clienteNome: dto.customerName,
+    documento: dto.documentNumber,
+    vencimento: dto.dueDate,
+    valor: centsToReais(dto.amountCents),
+    status: dto.status,
+  };
+}
+
+export interface LinkablePayableDTO {
+  id: string;
+  supplierName: string;
+  documentNumber: string;
+  categoryName: string;
+  dueDate: string | null;
+  amountCents: number;
+  status: string;
+}
+
+export function mapLinkablePayable(dto: LinkablePayableDTO): PayableVinculavel {
+  return {
+    id: dto.id,
+    fornecedorNome: dto.supplierName,
+    documento: dto.documentNumber,
+    categoriaNome: dto.categoryName,
+    vencimento: dto.dueDate,
+    valor: centsToReais(dto.amountCents),
+    status: dto.status,
+  };
 }

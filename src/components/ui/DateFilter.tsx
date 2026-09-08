@@ -5,7 +5,7 @@ import { calcularRangePreset, PERIODO_LABELS } from '@/utils/periodo';
 import { formatDate } from '@/utils/format';
 import { useDisclosure } from '@/hooks/useDisclosure';
 
-const PRESETS: PeriodoPreset[] = [
+const PRESETS_PADRAO: PeriodoPreset[] = [
   'hoje',
   'esta_semana',
   'este_mes',
@@ -17,9 +17,11 @@ const PRESETS: PeriodoPreset[] = [
 interface DateFilterProps {
   valor: PeriodoFiltro;
   onChange: (periodo: PeriodoFiltro) => void;
+  /** Restringe as opções exibidas (ex.: Margem de Contratos usa 3/6/12/24/36 meses, ano atual/anterior). */
+  presets?: PeriodoPreset[];
 }
 
-export function DateFilter({ valor, onChange }: DateFilterProps) {
+export function DateFilter({ valor, onChange, presets = PRESETS_PADRAO }: DateFilterProps) {
   const { aberto, alternar, fechar } = useDisclosure();
   const [rangeCustom, setRangeCustom] = useState(valor.range);
 
@@ -56,7 +58,7 @@ export function DateFilter({ valor, onChange }: DateFilterProps) {
           <div className="fixed inset-0 z-10" onClick={fechar} />
           <div className="absolute right-0 z-20 mt-2 w-72 rounded-xl border border-graphite-200 bg-white p-2 shadow-lg">
             <ul className="flex flex-col">
-              {PRESETS.map((preset) => (
+              {presets.map((preset) => (
                 <li key={preset}>
                   <button
                     type="button"

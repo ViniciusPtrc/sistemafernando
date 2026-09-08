@@ -32,3 +32,12 @@ export type ImportStatus = (typeof IMPORT_STATUS)[number];
 
 export const COMPANY_STATUS = ['ativo', 'inativo'] as const;
 export type CompanyStatus = (typeof COMPANY_STATUS)[number];
+
+export const CONTRACT_STATUS = ['ativo', 'encerrado', 'cancelado', 'outro'] as const;
+export type ContractStatus = (typeof CONTRACT_STATUS)[number];
+
+export const CONTRACT_COST_ORIGINS = ['manual', 'payable'] as const;
+export type ContractCostOrigin = (typeof CONTRACT_COST_ORIGINS)[number];
+
+export const CONTRACT_COST_TYPES = ['realizado', 'projetado'] as const;
+export type ContractCostType = (typeof CONTRACT_COST_TYPES)[number];

@@ -7,3 +7,4 @@ export * from './fluxoCaixa';
 export * from './dashboard';
 export * from './importacao';
 export * from './relatorio';
+export * from './margem';

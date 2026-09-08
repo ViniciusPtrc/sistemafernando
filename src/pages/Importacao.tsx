@@ -27,7 +27,7 @@ type Etapa = 'upload' | 'gerando_preview' | 'preview' | 'progresso' | 'resultado
 
 const FONTES: { fonte: FonteImportacao; titulo: string; descricao: string }[] = [
   { fonte: 'legacy', titulo: 'Sistema antigo', descricao: 'Relatório "Contas a Receber Anual" e planilhas do sistema financeiro anterior.' },
-  { fonte: 'totvs', titulo: 'TOTVS', descricao: 'Exportações do TOTVS — ex.: relatório "Posição de clientes".' },
+  { fonte: 'totvs', titulo: 'TOTVS', descricao: 'Exportações do TOTVS — ex.: "Posição de clientes" (Contas a Receber) e "Posição de fornecedores" (Contas a Pagar).' },
 ];
 
 const FONTE_LABEL: Record<FonteImportacao, string> = {

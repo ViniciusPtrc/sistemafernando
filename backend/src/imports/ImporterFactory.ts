@@ -4,12 +4,13 @@ import type { ImportKind } from './types/NormalizedFinancialRecord';
 import type { SourceAdapter } from './adapters/types';
 import { legacyAdapter } from './adapters/legacyAdapter';
 import { totvsReceivableAdapter } from './adapters/totvsReceivableAdapter';
+import { totvsPayableAdapter } from './adapters/totvsPayableAdapter';
 
-const ADAPTERS: SourceAdapter[] = [legacyAdapter, totvsReceivableAdapter];
+const ADAPTERS: SourceAdapter[] = [legacyAdapter, totvsReceivableAdapter, totvsPayableAdapter];
 
 const BY_SOURCE: Record<ImportSource, SourceAdapter[]> = {
   legacy: [legacyAdapter],
-  totvs: [totvsReceivableAdapter],
+  totvs: [totvsReceivableAdapter, totvsPayableAdapter],
 };
 
 /**

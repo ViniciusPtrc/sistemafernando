@@ -4,6 +4,7 @@ import { entryRouter } from './entry.routes';
 import companyRoutes from './company.routes';
 import analyticsRoutes from './analytics.routes';
 import importRoutes from './import.routes';
+import contractRoutes from './contract.routes';
 
 const api = Router();
 
@@ -13,5 +14,6 @@ api.use('/receivables', entryRouter('receivable'));
 api.use('/payables', entryRouter('payable'));
 api.use(analyticsRoutes);
 api.use(importRoutes);
+api.use(contractRoutes);
 
 export default api;
