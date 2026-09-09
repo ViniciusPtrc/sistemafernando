@@ -7,6 +7,7 @@ export interface Contrato {
   clienteNome: string;
   clienteDocumento: string;
   valorContratadoCents: number;
+  faturamentoMensalCents: number;
   dataInicio: string;
   dataFim: string | null;
   status: StatusContrato;
@@ -15,6 +16,7 @@ export interface Contrato {
 
 export type OrigemCusto = 'manual' | 'payable';
 export type TipoCusto = 'realizado' | 'projetado';
+export type RecorrenciaCusto = 'once' | 'installment' | 'fixed';
 
 export interface CustoContrato {
   id: string;
@@ -28,6 +30,9 @@ export interface CustoContrato {
   fornecedorNome: string;
   valor: number;
   data: string | null;
+  recorrencia: RecorrenciaCusto;
+  parcelas: number | null;
+  recorrenciaFim: string | null;
   observacoes: string;
 }
 
@@ -81,6 +86,7 @@ export interface ContratoMargemDetalhe {
     clienteNome: string;
     clienteDocumento: string;
     valorContratadoCents: number;
+    faturamentoMensalCents: number;
     status: StatusContrato;
     dataInicio: string;
     dataFim: string | null;
@@ -91,6 +97,7 @@ export interface ContratoMargemDetalhe {
   receita: number;
   receitaRecebida: number;
   receitaPendente: number;
+  receitaBase: 'vinculada' | 'faturamento_mensal';
   custosRealizados: number;
   custosProjetados: number;
   lucroAtual: number;
@@ -98,6 +105,37 @@ export interface ContratoMargemDetalhe {
   margemAtualPct: number | null;
   margemProjetadaPct: number | null;
   classificacao: ClassificacaoMargem;
+}
+
+export interface ProjecaoMes {
+  mes: string;
+  chave: string;
+  receita: number;
+  custos: number;
+  lucro: number;
+  margemPct: number | null;
+}
+
+export interface ContratoProjecao {
+  contrato: {
+    id: string;
+    numero: string;
+    clienteNome: string;
+    status: StatusContrato;
+    dataFim: string | null;
+  };
+  meses: number;
+  faturamentoMensalCents: number;
+  range: { from: string; to: string };
+  linha: ProjecaoMes[];
+  totais: {
+    receita: number;
+    custos: number;
+    lucro: number;
+    margemPct: number | null;
+    margemMediaPct: number | null;
+    classificacao: ClassificacaoMargem;
+  };
 }
 
 export interface ReceitaVinculavel {

@@ -9,6 +9,7 @@ import type {
   ContaReceber,
   Contrato,
   ContratoMargemDetalhe,
+  ContratoProjecao,
   CustoContrato,
   DashboardFinanceiro,
   LancamentoFluxoCaixa,
@@ -409,6 +410,7 @@ export interface ContractDTO {
   customerName: string;
   customerDocument: string;
   contractedValueCents: number;
+  monthlyRevenueCents?: number;
   startDate: string | null;
   endDate: string | null;
   status: StatusContrato;
@@ -423,6 +425,7 @@ export function mapContract(dto: ContractDTO): Contrato {
     clienteNome: dto.customerName,
     clienteDocumento: dto.customerDocument,
     valorContratadoCents: dto.contractedValueCents,
+    faturamentoMensalCents: dto.monthlyRevenueCents ?? 0,
     dataInicio: dto.startDate ?? '',
     dataFim: dto.endDate,
     status: dto.status,
@@ -523,6 +526,7 @@ export interface ContractMarginDTO {
     customerName: string;
     customerDocument: string;
     contractedValueCents: number;
+    monthlyRevenueCents?: number;
     status: StatusContrato;
     startDate: string | null;
     endDate: string | null;
@@ -533,6 +537,7 @@ export interface ContractMarginDTO {
   receitaCents: number;
   receitaRecebidaCents: number;
   receitaPendenteCents: number;
+  receitaBase?: 'vinculada' | 'faturamento_mensal';
   custosRealizadosCents: number;
   custosProjetadosCents: number;
   lucroAtualCents: number;
@@ -551,6 +556,7 @@ export function mapContractMargin(dto: ContractMarginDTO): ContratoMargemDetalhe
       clienteNome: dto.contract.customerName,
       clienteDocumento: dto.contract.customerDocument,
       valorContratadoCents: dto.contract.contractedValueCents,
+      faturamentoMensalCents: dto.contract.monthlyRevenueCents ?? 0,
       status: dto.contract.status,
       dataInicio: dto.contract.startDate ?? '',
       dataFim: dto.contract.endDate,
@@ -561,6 +567,7 @@ export function mapContractMargin(dto: ContractMarginDTO): ContratoMargemDetalhe
     receita: centsToReais(dto.receitaCents),
     receitaRecebida: centsToReais(dto.receitaRecebidaCents),
     receitaPendente: centsToReais(dto.receitaPendenteCents),
+    receitaBase: dto.receitaBase ?? 'vinculada',
     custosRealizados: centsToReais(dto.custosRealizadosCents),
     custosProjetados: centsToReais(dto.custosProjetadosCents),
     lucroAtual: centsToReais(dto.lucroAtualCents),
@@ -583,6 +590,9 @@ export interface ContractCostDTO {
   supplierName: string;
   amountCents: number;
   date: string | null;
+  recurrence?: 'once' | 'installment' | 'fixed';
+  installments?: number | null;
+  recurrenceEndDate?: string | null;
   notes: string;
 }
 
@@ -599,7 +609,57 @@ export function mapContractCost(dto: ContractCostDTO): CustoContrato {
     fornecedorNome: dto.supplierName,
     valor: centsToReais(dto.amountCents),
     data: dto.date,
+    recorrencia: dto.recurrence ?? 'once',
+    parcelas: dto.installments ?? null,
+    recorrenciaFim: dto.recurrenceEndDate ?? null,
     observacoes: dto.notes,
+  };
+}
+
+export interface ContractProjectionDTO {
+  contract: { id: string; number: string; customerName: string; status: StatusContrato; endDate: string | null };
+  months: number;
+  monthlyRevenueCents: number;
+  range: { from: string; to: string };
+  meses: { mes: string; chave: string; receitaCents: number; custosCents: number; lucroCents: number; margemPct: number | null }[];
+  totais: {
+    receitaCents: number;
+    custosCents: number;
+    lucroCents: number;
+    margemPct: number | null;
+    margemMediaPct: number | null;
+    classificacao: ClassificacaoDTO;
+  };
+}
+
+export function mapContractProjection(dto: ContractProjectionDTO): ContratoProjecao {
+  return {
+    contrato: {
+      id: dto.contract.id,
+      numero: dto.contract.number,
+      clienteNome: dto.contract.customerName,
+      status: dto.contract.status,
+      dataFim: dto.contract.endDate,
+    },
+    meses: dto.months,
+    faturamentoMensalCents: dto.monthlyRevenueCents,
+    range: dto.range,
+    linha: dto.meses.map((m) => ({
+      mes: m.mes,
+      chave: m.chave,
+      receita: centsToReais(m.receitaCents),
+      custos: centsToReais(m.custosCents),
+      lucro: centsToReais(m.lucroCents),
+      margemPct: m.margemPct,
+    })),
+    totais: {
+      receita: centsToReais(dto.totais.receitaCents),
+      custos: centsToReais(dto.totais.custosCents),
+      lucro: centsToReais(dto.totais.lucroCents),
+      margemPct: dto.totais.margemPct,
+      margemMediaPct: dto.totais.margemMediaPct,
+      classificacao: dto.totais.classificacao,
+    },
   };
 }
 

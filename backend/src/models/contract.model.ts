@@ -10,6 +10,8 @@ const contractSchema = new Schema(
     customerDocument: { type: String, default: '', trim: true },
 
     contractedValueCents: { type: Number, default: 0 },
+    /** Faturamento mensal projetado (fixo, sem reajuste). Base da receita na projeção de 36 meses. */
+    monthlyRevenueCents: { type: Number, default: 0 },
     startDate: { type: Date, required: true },
     endDate: { type: Date, default: null },
 

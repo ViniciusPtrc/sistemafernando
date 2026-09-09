@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CONTRACT_STATUS, CONTRACT_COST_TYPES } from '../models/enums';
+import { CONTRACT_STATUS, CONTRACT_COST_TYPES, CONTRACT_COST_RECURRENCES } from '../models/enums';
 import { MARGIN_PERIOD_PRESETS } from '../utils/period';
 import { paginationQuery, dateStr } from '../middlewares/validate';
 
@@ -26,6 +26,8 @@ export const createContractBody = z.object({
   customerDocument: z.string().trim().optional(),
   contractedValue: money.optional(),
   contractedValueCents: z.number().int().optional(),
+  monthlyRevenue: money.optional(),
+  monthlyRevenueCents: z.number().int().optional(),
   startDate: z.string().trim().min(1),
   endDate: z.string().trim().nullable().optional(),
   status: z.enum(CONTRACT_STATUS).optional(),
@@ -58,6 +60,9 @@ export const createContractCostBody = z.object({
   amountCents: z.number().int().optional(),
   date: z.string().trim().min(1),
   type: z.enum(CONTRACT_COST_TYPES).default('realizado'),
+  recurrence: z.enum(CONTRACT_COST_RECURRENCES).default('once'),
+  installments: z.coerce.number().int().min(1).max(360).optional(),
+  recurrenceEndDate: z.string().trim().nullable().optional(),
   notes: z.string().trim().optional(),
 });
 export const updateContractCostBody = createContractCostBody.partial();
@@ -71,6 +76,7 @@ export const marginQuery = z.object({
   companyId: z.string().trim().optional(),
   contractId: z.string().trim().optional(),
   customerName: z.string().trim().optional(),
+  search: z.string().trim().optional(),
   status: z.enum(CONTRACT_STATUS).optional(),
 });
 export type MarginQuery = z.infer<typeof marginQuery>;
@@ -80,3 +86,8 @@ export const marginByContractQuery = marginQuery.extend({
     .enum(['receita', 'custos', 'lucro', 'margem', 'receita_asc', 'custos_asc', 'lucro_asc', 'margem_asc'])
     .default('margem'),
 });
+
+export const marginProjectionQuery = z.object({
+  months: z.coerce.number().int().min(1).max(120).default(36),
+});
+export type MarginProjectionQuery = z.infer<typeof marginProjectionQuery>;

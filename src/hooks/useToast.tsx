@@ -17,6 +17,13 @@ interface ToastContextValue {
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
+/** `crypto.randomUUID` só existe em contexto seguro (localhost/HTTPS); em `http://IP` da rede ele lança. */
+let contadorToast = 0;
+function gerarId(): string {
+  contadorToast += 1;
+  return `toast-${Date.now()}-${contadorToast}`;
+}
+
 const VARIANTE_ESTILO: Record<ToastVariante, string> = {
   sucesso: 'border-l-4 border-positive-500',
   erro: 'border-l-4 border-negative-500',
@@ -40,7 +47,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const notificar = useCallback(
     (toast: Omit<ToastItem, 'id'>) => {
-      const id = crypto.randomUUID();
+      const id = gerarId();
       setToasts((atual) => [...atual, { ...toast, id }]);
       setTimeout(() => remover(id), 5000);
     },

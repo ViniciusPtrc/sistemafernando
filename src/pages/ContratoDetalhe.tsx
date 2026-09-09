@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/useToast';
 import {
   getContratoMargem,
   getContratoMargemMensal,
+  getContratoProjecao,
   getCustosContrato,
   getReceitasVinculaveis,
   getPayablesVinculaveis,
@@ -30,7 +31,7 @@ import {
 } from '@/services/marginService';
 import { formatCurrency, formatDate, formatPercent } from '@/utils/format';
 import { calcularRangePreset } from '@/utils/periodo';
-import type { Contrato, ContratoMargemDetalhe, CustoContrato, MargemMensal, PeriodoFiltro, ReceitaVinculavel, PayableVinculavel, TipoCusto } from '@/types';
+import type { Contrato, ContratoMargemDetalhe, ContratoProjecao, CustoContrato, MargemMensal, PeriodoFiltro, ProjecaoMes, ReceitaVinculavel, PayableVinculavel, RecorrenciaCusto, TipoCusto } from '@/types';
 
 const PRESETS_MARGEM: PeriodoFiltro['preset'][] = [
   'ultimos_3_meses',
@@ -45,6 +46,13 @@ const PRESETS_MARGEM: PeriodoFiltro['preset'][] = [
 
 const ORIGEM_LABEL: Record<CustoContrato['origem'], string> = { manual: 'Manual', payable: 'Contas a Pagar' };
 const TIPO_LABEL: Record<TipoCusto, string> = { realizado: 'Realizado', projetado: 'Projetado' };
+const RECORRENCIA_LABEL: Record<RecorrenciaCusto, string> = { once: 'Único', installment: 'Parcelado', fixed: 'Fixo mensal' };
+
+function descricaoRecorrencia(c: CustoContrato): string {
+  if (c.recorrencia === 'installment') return `Parcelado ${c.parcelas ?? '?'}x`;
+  if (c.recorrencia === 'fixed') return c.recorrenciaFim ? `Fixo até ${formatDate(c.recorrenciaFim)}` : 'Fixo mensal';
+  return RECORRENCIA_LABEL.once;
+}
 
 export default function ContratoDetalhePage() {
   const { id } = useParams<{ id: string }>();
@@ -55,6 +63,7 @@ export default function ContratoDetalhePage() {
   const [periodo, setPeriodo] = useState<PeriodoFiltro>({ preset: 'ultimos_12_meses', range: calcularRangePreset('ultimos_12_meses') });
   const [detalhe, setDetalhe] = useState<ContratoMargemDetalhe | null>(null);
   const [mensal, setMensal] = useState<MargemMensal[]>([]);
+  const [projecao, setProjecao] = useState<ContratoProjecao | null>(null);
   const [custos, setCustos] = useState<CustoContrato[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(false);
@@ -79,11 +88,12 @@ export default function ContratoDetalhePage() {
     if (!id) return;
     setCarregando(true);
     setErro(false);
-    Promise.all([getContratoMargem(id, filtro), getContratoMargemMensal(id, filtro), getCustosContrato(id)])
-      .then(([d, m, c]) => {
+    Promise.all([getContratoMargem(id, filtro), getContratoMargemMensal(id, filtro), getCustosContrato(id), getContratoProjecao(id, 36)])
+      .then(([d, m, c, p]) => {
         setDetalhe(d);
         setMensal(m);
         setCustos(c);
+        setProjecao(p);
         setCarregando(false);
       })
       .catch(() => {
@@ -100,6 +110,7 @@ export default function ContratoDetalhePage() {
         clienteNome: detalhe.contrato.clienteNome,
         clienteDocumento: detalhe.contrato.clienteDocumento,
         valorContratadoCents: detalhe.contrato.valorContratadoCents,
+        faturamentoMensalCents: detalhe.contrato.faturamentoMensalCents,
         dataInicio: detalhe.contrato.dataInicio,
         dataFim: detalhe.contrato.dataFim,
         status: detalhe.contrato.status,
@@ -116,6 +127,7 @@ export default function ContratoDetalhePage() {
     try {
       await excluirCusto(id, custo.id);
       setCustos((atual) => atual.filter((c) => c.id !== custo.id));
+      setTentativa((t) => t + 1);
       notificar({ titulo: 'Custo removido', descricao: custo.descricao, variante: 'sucesso' });
     } catch (e) {
       notificar({ titulo: 'Não foi possível remover', descricao: e instanceof Error ? e.message : 'Tente novamente.', variante: 'erro' });
@@ -130,6 +142,7 @@ export default function ContratoDetalhePage() {
     { chave: 'valor', titulo: 'Valor', alinhamento: 'direita', render: (c) => formatCurrency(c.valor) },
     { chave: 'origem', titulo: 'Origem', render: (c) => ORIGEM_LABEL[c.origem] },
     { chave: 'tipo', titulo: 'Tipo', render: (c) => TIPO_LABEL[c.tipo] },
+    { chave: 'recorrencia', titulo: 'Recorrência', render: (c) => descricaoRecorrencia(c) },
     {
       chave: 'id',
       titulo: '',
@@ -140,6 +153,16 @@ export default function ContratoDetalhePage() {
       ),
     },
   ];
+
+  const colunasProjecao: DataTableColumn<ProjecaoMes>[] = [
+    { chave: 'mes', titulo: 'Mês' },
+    { chave: 'receita', titulo: 'Receita', alinhamento: 'direita', render: (m) => formatCurrency(m.receita) },
+    { chave: 'custos', titulo: 'Custos', alinhamento: 'direita', render: (m) => formatCurrency(m.custos) },
+    { chave: 'lucro', titulo: 'Lucro', alinhamento: 'direita', render: (m) => <span className="font-medium text-graphite-900">{formatCurrency(m.lucro)}</span> },
+    { chave: 'margemPct', titulo: 'Margem', alinhamento: 'direita', render: (m) => (m.margemPct == null ? 'N/A' : formatPercent(m.margemPct)) },
+  ];
+
+  const semFaturamento = !!projecao && projecao.faturamentoMensalCents <= 0;
 
   if (erro) return <ErrorState onTentarNovamente={() => setTentativa((t) => t + 1)} />;
   if (!carregando && !detalhe) return <EmptyState titulo="Contrato não encontrado" />;
@@ -164,19 +187,25 @@ export default function ContratoDetalhePage() {
 
       {detalhe && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <FinancialCard titulo="Receita" valor={formatCurrency(detalhe.receita)} icone={<Wallet className="h-4 w-4" />} tom="destaque" />
-          <FinancialCard titulo="Custos Reais" valor={formatCurrency(detalhe.custosRealizados)} icone={<TrendingDown className="h-4 w-4" />} tom="negativo" />
-          <FinancialCard titulo="Lucro Atual" valor={formatCurrency(detalhe.lucroAtual)} icone={<TrendingUp className="h-4 w-4" />} tom={detalhe.lucroAtual >= 0 ? 'positivo' : 'negativo'} />
           <FinancialCard
-            titulo="Margem Atual"
+            titulo="Receita no período"
+            valor={formatCurrency(detalhe.receita)}
+            icone={<Wallet className="h-4 w-4" />}
+            tom="destaque"
+            linhaDetalhe={detalhe.receitaBase === 'faturamento_mensal' ? 'base: faturamento mensal' : 'base: contas a receber vinculadas'}
+          />
+          <FinancialCard titulo="Custos no período" valor={formatCurrency(detalhe.custosRealizados)} icone={<TrendingDown className="h-4 w-4" />} tom="negativo" />
+          <FinancialCard titulo="Lucro no período" valor={formatCurrency(detalhe.lucroAtual)} icone={<TrendingUp className="h-4 w-4" />} tom={detalhe.lucroAtual >= 0 ? 'positivo' : 'negativo'} />
+          <FinancialCard
+            titulo="Margem no período"
             valor={detalhe.margemAtualPct == null ? 'N/A' : formatPercent(detalhe.margemAtualPct)}
             icone={<Percent className="h-4 w-4" />}
             linhaDetalhe={detalhe.classificacao.label}
           />
           <FinancialCard titulo="Receita Recebida" valor={formatCurrency(detalhe.receitaRecebida)} icone={<Wallet className="h-4 w-4" />} />
           <FinancialCard titulo="Receita Pendente" valor={formatCurrency(detalhe.receitaPendente)} icone={<Wallet className="h-4 w-4" />} />
-          <FinancialCard titulo="Custos Projetados" valor={formatCurrency(detalhe.custosProjetados)} icone={<TrendingDown className="h-4 w-4" />} />
-          <FinancialCard titulo="Margem Projetada" valor={detalhe.margemProjetadaPct == null ? 'N/A' : formatPercent(detalhe.margemProjetadaPct)} icone={<Percent className="h-4 w-4" />} />
+          <FinancialCard titulo="Custos Projetados (36m)" valor={formatCurrency(detalhe.custosProjetados)} icone={<TrendingDown className="h-4 w-4" />} />
+          <FinancialCard titulo="Margem Projetada (36m)" valor={detalhe.margemProjetadaPct == null ? 'N/A' : formatPercent(detalhe.margemProjetadaPct)} icone={<Percent className="h-4 w-4" />} />
         </div>
       )}
 
@@ -186,9 +215,49 @@ export default function ContratoDetalhePage() {
         </div>
       )}
 
-      <ChartCard titulo="Evolução do Contrato" subtitulo="Receita, custos e margem mês a mês">
+      <ChartCard titulo="Evolução do Contrato" subtitulo="Receita, custos e margem mês a mês (período selecionado)">
         {carregando ? <div className="h-[340px] animate-pulse rounded-lg bg-graphite-100" /> : <MarginEvolutionChart dados={mensal} />}
       </ChartCard>
+
+      <Card>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-graphite-200 p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-graphite-900">Projeção — próximos {projecao?.meses ?? 36} meses</h2>
+            <p className="text-xs text-graphite-500">
+              Faturamento mensal fixo de {formatCurrency((projecao?.faturamentoMensalCents ?? 0) / 100)} × custos lançados no contrato. A margem muda sozinha quando um parcelamento termina.
+            </p>
+          </div>
+          <Button variante="secundario" onClick={() => setModalEditarAberto(true)}>Ajustar faturamento</Button>
+        </div>
+
+        {semFaturamento ? (
+          <div className="p-6 text-sm text-graphite-500">
+            Defina o <strong>faturamento mensal</strong> do contrato (botão “Ajustar faturamento” ou “Editar contrato”) para ver a projeção de margem.
+          </div>
+        ) : (
+          <>
+            {projecao && (
+              <div className="grid grid-cols-2 gap-4 p-4 xl:grid-cols-4">
+                <FinancialCard titulo={`Receita ${projecao.meses}m`} valor={formatCurrency(projecao.totais.receita)} icone={<Wallet className="h-4 w-4" />} tom="destaque" />
+                <FinancialCard titulo={`Custos ${projecao.meses}m`} valor={formatCurrency(projecao.totais.custos)} icone={<TrendingDown className="h-4 w-4" />} tom="negativo" />
+                <FinancialCard titulo={`Lucro ${projecao.meses}m`} valor={formatCurrency(projecao.totais.lucro)} icone={<TrendingUp className="h-4 w-4" />} tom={projecao.totais.lucro >= 0 ? 'positivo' : 'negativo'} />
+                <FinancialCard
+                  titulo="Margem média"
+                  valor={projecao.totais.margemPct == null ? 'N/A' : formatPercent(projecao.totais.margemPct)}
+                  icone={<Percent className="h-4 w-4" />}
+                  linhaDetalhe={projecao.totais.classificacao.label}
+                />
+              </div>
+            )}
+
+            <div className="px-4 pb-2">
+              {carregando ? <div className="h-[340px] animate-pulse rounded-lg bg-graphite-100" /> : <MarginEvolutionChart dados={projecao?.linha ?? []} />}
+            </div>
+
+            <DataTable colunas={colunasProjecao} dados={projecao?.linha ?? []} getId={(m) => m.chave} carregando={carregando} />
+          </>
+        )}
+      </Card>
 
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-graphite-200 p-4">
@@ -223,7 +292,10 @@ export default function ContratoDetalhePage() {
             aberto={modalCustoAberto}
             onFechar={() => setModalCustoAberto(false)}
             contractId={id}
-            onCriado={(c) => setCustos((atual) => [c, ...atual])}
+            onCriado={(c) => {
+              setCustos((atual) => [c, ...atual]);
+              setTentativa((t) => t + 1);
+            }}
           />
 
           <LinkExistingModal<PayableVinculavel>

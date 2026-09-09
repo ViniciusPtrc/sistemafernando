@@ -1,5 +1,5 @@
 import { Schema, model, InferSchemaType, HydratedDocument, Types } from 'mongoose';
-import { CONTRACT_COST_ORIGINS, CONTRACT_COST_TYPES } from './enums';
+import { CONTRACT_COST_ORIGINS, CONTRACT_COST_TYPES, CONTRACT_COST_RECURRENCES } from './enums';
 
 const contractCostSchema = new Schema(
   {
@@ -16,8 +16,17 @@ const contractCostSchema = new Schema(
     category: { type: String, default: '' },
     categoryName: { type: String, default: '' },
     supplierName: { type: String, default: '' },
+    /** Valor de UMA parcela (installment) ou de UM mês (fixed); valor total quando `once`. */
     amountCents: { type: Number, default: 0 },
+    /** `once`: data do lançamento. `installment`/`fixed`: mês inicial da recorrência. */
     date: { type: Date, default: null },
+
+    /* --- recorrência (projeção de 36 meses) — só para origin === 'manual' --- */
+    recurrence: { type: String, enum: CONTRACT_COST_RECURRENCES, default: 'once' },
+    /** Nº de parcelas quando recurrence === 'installment'. */
+    installments: { type: Number, default: null },
+    /** Mês final (inclusivo) quando recurrence === 'fixed'. null = sem fim definido. */
+    recurrenceEndDate: { type: Date, default: null },
 
     notes: { type: String, default: '' },
   },

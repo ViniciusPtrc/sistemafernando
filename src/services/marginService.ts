@@ -1,9 +1,10 @@
-import type { Contrato, ContratoMargemDetalhe, CustoContrato, MargemMensal, MargemPorContrato, MargemResumo, PayableVinculavel, PeriodoPreset, ReceitaVinculavel, RespostaPaginada, StatusContrato } from '@/types';
+import type { Contrato, ContratoMargemDetalhe, ContratoProjecao, CustoContrato, MargemMensal, MargemPorContrato, MargemResumo, PayableVinculavel, PeriodoPreset, ReceitaVinculavel, RecorrenciaCusto, RespostaPaginada, StatusContrato } from '@/types';
 import { apiGet, apiSend, buildQuery } from './api';
 import {
   mapContract,
   mapContractCost,
   mapContractMargin,
+  mapContractProjection,
   mapLinkablePayable,
   mapLinkableReceivable,
   mapMarginByContract,
@@ -13,6 +14,7 @@ import {
   type ContractCostDTO,
   type ContractDTO,
   type ContractMarginDTO,
+  type ContractProjectionDTO,
   type EnvelopeApi,
   type LinkablePayableDTO,
   type LinkableReceivableDTO,
@@ -28,6 +30,7 @@ export interface FiltroMargem {
   companyId?: string;
   contractId?: string;
   customerName?: string;
+  search?: string;
   status?: StatusContrato;
 }
 
@@ -39,6 +42,7 @@ function queryDoFiltro(f: FiltroMargem) {
     companyId: f.companyId && f.companyId !== 'all' ? f.companyId : undefined,
     contractId: f.contractId || undefined,
     customerName: f.customerName || undefined,
+    search: f.search?.trim() || undefined,
     status: f.status || undefined,
   };
 }
@@ -70,6 +74,11 @@ export async function getContratoMargemMensal(contractId: string, filtro: Omit<F
   return dtos.map(mapMarginMonthly);
 }
 
+export async function getContratoProjecao(contractId: string, meses = 36): Promise<ContratoProjecao> {
+  const dto = await apiGet<ContractProjectionDTO>(`/contracts/${contractId}/margin/projection${buildQuery({ months: meses })}`);
+  return mapContractProjection(dto);
+}
+
 /* --------------------------------- Contratos (CRUD) --------------------------------- */
 
 export async function getContratos(params: { companyId?: string; status?: StatusContrato; search?: string; page?: number; limit?: number }): Promise<RespostaPaginada<Contrato>> {
@@ -90,6 +99,7 @@ export interface NovoContrato {
   customerName: string;
   customerDocument?: string;
   contractedValue?: number;
+  monthlyRevenue?: number;
   startDate: string;
   endDate?: string | null;
   status?: StatusContrato;
@@ -144,6 +154,9 @@ export interface NovoCustoManual {
   amount: number;
   date: string;
   type: 'realizado' | 'projetado';
+  recurrence?: RecorrenciaCusto;
+  installments?: number;
+  recurrenceEndDate?: string | null;
   notes?: string;
 }
 

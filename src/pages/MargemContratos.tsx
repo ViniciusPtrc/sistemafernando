@@ -4,6 +4,7 @@ import { Percent, Plus, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { DateFilter } from '@/components/ui/DateFilter';
 import { Select } from '@/components/ui/Select';
+import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ChartCard } from '@/components/ui/ChartCard';
@@ -55,7 +56,14 @@ export default function MargemContratosPage() {
   const [periodo, setPeriodo] = useState<PeriodoFiltro>({ preset: 'ultimos_12_meses', range: calcularRangePreset('ultimos_12_meses') });
   const [contractId, setContractId] = useState('');
   const [customerName, setCustomerName] = useState('');
+  const [busca, setBusca] = useState('');
+  const [buscaAplicada, setBuscaAplicada] = useState('');
   const [status, setStatus] = useState('');
+
+  useEffect(() => {
+    const t = setTimeout(() => setBuscaAplicada(busca.trim()), 350);
+    return () => clearTimeout(t);
+  }, [busca]);
   const [ordenacao, setOrdenacao] = useState<OrdenacaoMargemContrato>('margem');
 
   const [contratos, setContratos] = useState<Contrato[]>([]);
@@ -75,9 +83,10 @@ export default function MargemContratosPage() {
       companyId: selectedCompany,
       contractId: contractId || undefined,
       customerName: customerName || undefined,
+      search: buscaAplicada || undefined,
       status: (status as StatusContrato) || undefined,
     }),
-    [periodo, selectedCompany, contractId, customerName, status],
+    [periodo, selectedCompany, contractId, customerName, buscaAplicada, status],
   );
 
   useEffect(() => {
@@ -142,6 +151,14 @@ export default function MargemContratosPage() {
 
       <Card>
         <div className="flex flex-col gap-3 p-4 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="w-full sm:w-64">
+            <Input
+              type="search"
+              placeholder="Buscar por nº do contrato ou cliente…"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
+          </div>
           <div className="w-full sm:w-44">
             <Select
               placeholder="Todas as empresas"

@@ -1,6 +1,13 @@
 import type { Request, Response } from 'express';
 import { sendOk } from '../utils/http';
-import { getMarginSummary, getMarginMonthly, getMarginByContract, getContractMargin, getContractMarginMonthly } from '../services/margin.service';
+import {
+  getMarginSummary,
+  getMarginMonthly,
+  getMarginByContract,
+  getContractMargin,
+  getContractMarginMonthly,
+  getContractProjection,
+} from '../services/margin.service';
 
 export const marginController = {
   summary: async (req: Request, res: Response) => {
@@ -18,5 +25,8 @@ export const marginController = {
   },
   contractMonthly: async (req: Request, res: Response) => {
     sendOk(res, await getContractMarginMonthly(req.params.id, req.query as any));
+  },
+  contractProjection: async (req: Request, res: Response) => {
+    sendOk(res, await getContractProjection(req.params.id, Number((req.query as any).months) || 36));
   },
 };

@@ -44,6 +44,35 @@ export function formatNumber(valor: number): string {
   return valor.toLocaleString('pt-BR');
 }
 
+/**
+ * Interpreta um valor monetário digitado no formato brasileiro e devolve o número
+ * em reais (ou `undefined` se não der para entender). Aceita "R$ 15.000,00",
+ * "15.000,00", "15000,5", "15000.50" e "15000".
+ */
+export function parseValorBR(entrada: string): number | undefined {
+  if (typeof entrada !== 'string') return undefined;
+  let s = entrada.trim().replace(/[^\d.,-]/g, '');
+  if (!s) return undefined;
+
+  const temVirgula = s.includes(',');
+  const temPonto = s.includes('.');
+
+  if (temVirgula && temPonto) {
+    // "15.000,00" → ponto é separador de milhar, vírgula é decimal
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if (temVirgula) {
+    // "15000,50" → vírgula é decimal
+    s = s.replace(',', '.');
+  } else if (temPonto) {
+    const partes = s.split('.');
+    // "1.500" (grupos de 3 dígitos) → separador de milhar; "1500.50" → decimal
+    if (partes.length > 2 || partes[partes.length - 1].length === 3) s = partes.join('');
+  }
+
+  const n = Number(s);
+  return Number.isFinite(n) ? n : undefined;
+}
+
 export function diasEntre(dataInicial: string, dataFinal: string): number {
   const inicio = new Date(`${dataInicial}T00:00:00`);
   const fim = new Date(`${dataFinal}T00:00:00`);

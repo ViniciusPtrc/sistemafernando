@@ -12,6 +12,7 @@ import {
   linkableQuery,
   listContractsQuery,
   marginByContractQuery,
+  marginProjectionQuery,
   marginQuery,
   twoIdParam,
   updateContractBody,
@@ -35,6 +36,7 @@ router.delete('/contracts/:id', validate({ params: idParam }), asyncHandler(cont
 // Margem — Nível 2 (por contrato)
 router.get('/contracts/:id/margin', validate({ params: idParam, query: marginQuery }), asyncHandler(marginController.contractSummary));
 router.get('/contracts/:id/margin/monthly', validate({ params: idParam, query: marginQuery }), asyncHandler(marginController.contractMonthly));
+router.get('/contracts/:id/margin/projection', validate({ params: idParam, query: marginProjectionQuery }), asyncHandler(marginController.contractProjection));
 
 // Vincular receitas existentes (§4/§14)
 router.get('/contracts/:id/revenues/linkable', validate({ params: idParam, query: linkableQuery }), asyncHandler(contractController.linkableReceivables));

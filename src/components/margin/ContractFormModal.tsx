@@ -5,6 +5,7 @@ import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/hooks/useToast';
 import { criarContrato, atualizarContrato } from '@/services/marginService';
+import { parseValorBR } from '@/utils/format';
 import type { Company, Contrato, StatusContrato } from '@/types';
 
 const STATUS_OPCOES: { value: StatusContrato; label: string }[] = [
@@ -29,6 +30,7 @@ const VAZIO = {
   customerName: '',
   customerDocument: '',
   contractedValue: '',
+  monthlyRevenue: '',
   startDate: '',
   endDate: '',
   status: 'ativo' as StatusContrato,
@@ -49,6 +51,7 @@ export function ContractFormModal({ aberto, onFechar, onSalvo, companies, compan
         customerName: contrato.clienteNome,
         customerDocument: contrato.clienteDocumento,
         contractedValue: contrato.valorContratadoCents ? String(contrato.valorContratadoCents / 100) : '',
+        monthlyRevenue: contrato.faturamentoMensalCents ? String(contrato.faturamentoMensalCents / 100) : '',
         startDate: contrato.dataInicio,
         endDate: contrato.dataFim ?? '',
         status: contrato.status,
@@ -64,6 +67,14 @@ export function ContractFormModal({ aberto, onFechar, onSalvo, companies, compan
       notificar({ titulo: 'Preencha os campos obrigatórios', descricao: 'Empresa, número, cliente e data de início são obrigatórios.', variante: 'erro' });
       return;
     }
+    if (form.contractedValue.trim() && parseValorBR(form.contractedValue) === undefined) {
+      notificar({ titulo: 'Valor contratado inválido', descricao: 'Use um número como 500000 ou 500.000,00.', variante: 'erro' });
+      return;
+    }
+    if (form.monthlyRevenue.trim() && parseValorBR(form.monthlyRevenue) === undefined) {
+      notificar({ titulo: 'Faturamento mensal inválido', descricao: 'Use um número como 15000 ou 15.000,00.', variante: 'erro' });
+      return;
+    }
     setSalvando(true);
     try {
       const dados = {
@@ -71,16 +82,17 @@ export function ContractFormModal({ aberto, onFechar, onSalvo, companies, compan
         number: form.number.trim(),
         customerName: form.customerName.trim(),
         customerDocument: form.customerDocument.trim() || undefined,
-        contractedValue: form.contractedValue ? Number(form.contractedValue.replace(',', '.')) : undefined,
+        contractedValue: form.contractedValue.trim() ? parseValorBR(form.contractedValue) : undefined,
+        monthlyRevenue: form.monthlyRevenue.trim() ? parseValorBR(form.monthlyRevenue) : undefined,
         startDate: form.startDate,
         endDate: form.endDate || null,
         status: form.status,
         notes: form.notes.trim() || undefined,
       };
       const salvo = contrato ? await atualizarContrato(contrato.id, dados) : await criarContrato(dados);
-      notificar({ titulo: contrato ? 'Contrato atualizado' : 'Contrato criado', descricao: `${salvo.numero} — ${salvo.clienteNome}`, variante: 'sucesso' });
       onSalvo(salvo);
       onFechar();
+      notificar({ titulo: contrato ? 'Contrato atualizado' : 'Contrato criado', descricao: `${salvo.numero} — ${salvo.clienteNome}`, variante: 'sucesso' });
     } catch (e) {
       notificar({ titulo: 'Não foi possível salvar', descricao: e instanceof Error ? e.message : 'Tente novamente.', variante: 'erro' });
     } finally {
@@ -117,14 +129,20 @@ export function ContractFormModal({ aberto, onFechar, onSalvo, companies, compan
 
         <div className="grid grid-cols-2 gap-3">
           <label className="flex flex-col gap-1 text-xs font-medium text-graphite-500">
-            Valor contratado (R$)
-            <Input value={form.contractedValue} onChange={(e) => setForm((f) => ({ ...f, contractedValue: e.target.value }))} placeholder="500000,00" />
+            Valor contratado (R$) — opcional
+            <Input value={form.contractedValue} onChange={(e) => setForm((f) => ({ ...f, contractedValue: e.target.value }))} placeholder="500.000,00" />
           </label>
           <label className="flex flex-col gap-1 text-xs font-medium text-graphite-500">
             Status
             <Select opcoes={STATUS_OPCOES} value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as StatusContrato }))} />
           </label>
         </div>
+
+        <label className="flex flex-col gap-1 text-xs font-medium text-graphite-500">
+          Faturamento mensal (R$)
+          <Input value={form.monthlyRevenue} onChange={(e) => setForm((f) => ({ ...f, monthlyRevenue: e.target.value }))} placeholder="15000,00" />
+          <span className="text-[11px] font-normal text-graphite-400">Valor fixo usado na projeção dos próximos meses (sem reajuste).</span>
+        </label>
 
         <div className="grid grid-cols-2 gap-3">
           <label className="flex flex-col gap-1 text-xs font-medium text-graphite-500">

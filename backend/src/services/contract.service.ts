@@ -30,6 +30,7 @@ function serializeContract(doc: any) {
     customerName: doc.customerName,
     customerDocument: doc.customerDocument ?? '',
     contractedValueCents: doc.contractedValueCents ?? 0,
+    monthlyRevenueCents: doc.monthlyRevenueCents ?? 0,
     startDate: toYMD(doc.startDate),
     endDate: toYMD(doc.endDate),
     status: doc.status,
@@ -73,6 +74,15 @@ async function normalizeContractBody(body: any) {
         : undefined;
   if (cents !== undefined) data.contractedValueCents = cents ?? 0;
   delete data.contractedValue;
+
+  const monthlyCents =
+    typeof body.monthlyRevenueCents === 'number'
+      ? body.monthlyRevenueCents
+      : body.monthlyRevenue !== undefined
+        ? parseMoneyToCents(body.monthlyRevenue)
+        : undefined;
+  if (monthlyCents !== undefined) data.monthlyRevenueCents = monthlyCents ?? 0;
+  delete data.monthlyRevenue;
 
   if (body.startDate !== undefined) {
     const d = ymdToDate(body.startDate);
@@ -162,6 +172,9 @@ function serializeCost(row: any) {
     supplierName: fromPayable ? row.payable.supplierName : row.supplierName,
     amountCents: fromPayable ? row.payable.amountCents : row.amountCents,
     date: toYMD(fromPayable ? row.payable.dueDate : row.date),
+    recurrence: fromPayable ? 'once' : row.recurrence ?? 'once',
+    installments: fromPayable ? null : row.installments ?? null,
+    recurrenceEndDate: fromPayable ? null : toYMD(row.recurrenceEndDate),
     notes: row.notes ?? '',
   };
 }
@@ -224,6 +237,12 @@ export async function createManualCostService(contractId: string, body: any) {
   const date = ymdToDate(body.date);
   if (!date) throw new HttpError(422, 'date inválida (use YYYY-MM-DD)');
 
+  const recurrence = body.recurrence ?? 'once';
+  if (recurrence === 'installment' && (!body.installments || body.installments < 1)) {
+    throw new HttpError(422, 'Informe o número de parcelas (installments) para um custo parcelado.');
+  }
+  const recurrenceEndDate = recurrence === 'fixed' && body.recurrenceEndDate ? ymdToDate(body.recurrenceEndDate) : null;
+
   const categoryName = body.category && !body.categoryName ? await getCategoryName(body.category) : body.categoryName;
 
   const doc = await createContractCost({
@@ -236,6 +255,9 @@ export async function createManualCostService(contractId: string, body: any) {
     supplierName: body.supplierName ?? '',
     amountCents,
     date,
+    recurrence,
+    installments: recurrence === 'installment' ? body.installments : null,
+    recurrenceEndDate,
     notes: body.notes ?? '',
   });
   return serializeCost(doc.toObject());
@@ -256,6 +278,26 @@ export async function updateManualCostService(costId: string, body: any) {
     if (!d) throw new HttpError(422, 'date inválida (use YYYY-MM-DD)');
     data.date = d;
   }
+
+  const recurrence = body.recurrence ?? existing.recurrence ?? 'once';
+  if (body.recurrence !== undefined) {
+    if (recurrence === 'installment') {
+      const parcelas = body.installments ?? existing.installments;
+      if (!parcelas || parcelas < 1) throw new HttpError(422, 'Informe o número de parcelas (installments) para um custo parcelado.');
+      data.installments = parcelas;
+      data.recurrenceEndDate = null;
+    } else if (recurrence === 'fixed') {
+      data.installments = null;
+      data.recurrenceEndDate = body.recurrenceEndDate ? ymdToDate(body.recurrenceEndDate) : null;
+    } else {
+      data.installments = null;
+      data.recurrenceEndDate = null;
+    }
+  } else {
+    if (body.installments !== undefined) data.installments = body.installments;
+    if (body.recurrenceEndDate !== undefined) data.recurrenceEndDate = body.recurrenceEndDate ? ymdToDate(body.recurrenceEndDate) : null;
+  }
+
   if (body.category && !body.categoryName) data.categoryName = await getCategoryName(body.category);
 
   const updated = await updateContractCost(costId, data);
