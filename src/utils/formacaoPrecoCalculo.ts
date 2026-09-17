@@ -229,20 +229,24 @@ export function calcularResultado(f: RascunhoFormacaoPreco): ResultadoFormacaoPr
   }
 
   /**
-   * Conferência com o "Total dos Serviços" do DFP oficial: réplica exata da fórmula da
-   * planilha-modelo (aba "REAL (2)", célula A214). O tributo sobre a receita é
-   * calculado sobre a receita mensal INFORMADA × 12 (não sobre o preço mínimo acima),
-   * de propósito — evita a circularidade que a própria planilha evita ao digitar esse
-   * valor em vez de calculá-lo. Só é calculado quando `receitaMensalInformada` é preenchida.
+   * Conferência com o "Total dos Serviços" do DFP oficial: baseada na fórmula da
+   * planilha-modelo (aba "REAL (2)", célula A214), mas escalada para o período INTEIRO
+   * do contrato (`mesesContrato`), não só o ano 1 — receita e custo são multiplicados
+   * pelo mesmo fator (meses/12), então a proporção entre eles (e portanto a margem)
+   * fica idêntica à do ano 1, só que em valores totais do contrato. O tributo sobre a
+   * receita é calculado sobre a receita do PERÍODO INFORMADA (não sobre o preço mínimo
+   * acima), de propósito — evita a circularidade que a própria planilha evita ao digitar
+   * esse valor em vez de calculá-lo. Só é calculado quando `receitaMensalInformada` é preenchida.
    */
   let totalServicosDfp: number | null = null;
   let receitaAnualInformada: number | null = null;
   let resultadoContratoInformado: number | null = null;
   if (f.receitaMensalInformada != null && f.receitaMensalInformada > 0) {
     const kSemTributosReceita = f.custosIndiretosPercent + f.lucroPercent + (f.tributosSobreCustoPercent ?? 0);
-    receitaAnualInformada = f.receitaMensalInformada * 12;
+    const fatorPeriodoContrato = meses / 12;
+    receitaAnualInformada = f.receitaMensalInformada * meses;
     if (kSemTributosReceita < 1) {
-      const custoComGrossUp = totalCustosComContingencia / (1 - kSemTributosReceita);
+      const custoComGrossUp = (totalCustosComContingencia * fatorPeriodoContrato) / (1 - kSemTributosReceita);
       const tributoSobreReceitaValor = (f.tributosSobreReceitaPercent ?? 0) * receitaAnualInformada;
       totalServicosDfp = custoComGrossUp + tributoSobreReceitaValor;
       resultadoContratoInformado = receitaAnualInformada - totalServicosDfp;

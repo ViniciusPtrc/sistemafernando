@@ -302,20 +302,24 @@ export function computeResultado(doc: any) {
   }
 
   /**
-   * Conferência com o "Total dos Serviços" do DFP oficial: réplica exata da fórmula da
-   * planilha-modelo (aba "REAL (2)", célula A214). O tributo sobre a receita é calculado
-   * sobre a receita mensal INFORMADA × 12 (não sobre o preço mínimo acima), de propósito
-   * — assim evita a circularidade que a própria planilha evita ao digitar esse valor em
-   * vez de calculá-lo. Só aparece quando `informedMonthlyRevenueCents` é informado.
+   * Conferência com o "Total dos Serviços" do DFP oficial: baseada na fórmula da
+   * planilha-modelo (aba "REAL (2)", célula A214), mas escalada para o período INTEIRO
+   * do contrato (`contractMonths`), não só o ano 1 — receita e custo são multiplicados
+   * pelo mesmo fator (meses/12), então a proporção entre eles (e portanto a margem) fica
+   * idêntica à do ano 1, só que em valores totais do contrato. O tributo sobre a receita
+   * é calculado sobre a receita do PERÍODO INFORMADA (não sobre o preço mínimo acima), de
+   * propósito — evita a circularidade que a própria planilha evita ao digitar esse valor
+   * em vez de calculá-lo. Só aparece quando `informedMonthlyRevenueCents` é informado.
    */
   let totalServicosDfpCents: number | null = null;
   let resultadoContratoInformadoCents: number | null = null;
   let informedAnnualRevenueCents: number | null = null;
   if (informedMonthlyRevenueCents !== null && informedMonthlyRevenueCents > 0) {
     const kSemTributosReceita = indirectCostsPercent + profitPercent + costBasedTaxesPercent;
-    informedAnnualRevenueCents = informedMonthlyRevenueCents * 12;
+    const contractPeriodFactor = contractMonths / 12;
+    informedAnnualRevenueCents = informedMonthlyRevenueCents * contractMonths;
     if (kSemTributosReceita < 1) {
-      const grossedUpCostCents = Math.round(costsBaseForPriceCents / (1 - kSemTributosReceita));
+      const grossedUpCostCents = Math.round((costsBaseForPriceCents * contractPeriodFactor) / (1 - kSemTributosReceita));
       const revenueTaxCents = Math.round(revenueBasedTaxesPercent * informedAnnualRevenueCents);
       totalServicosDfpCents = grossedUpCostCents + revenueTaxCents;
       resultadoContratoInformadoCents = informedAnnualRevenueCents - totalServicosDfpCents;

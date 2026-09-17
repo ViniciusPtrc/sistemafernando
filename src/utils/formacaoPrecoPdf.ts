@@ -175,7 +175,7 @@ export function gerarPdfFormacaoPreco(f: RascunhoFormacaoPreco, resultado: Resul
       headStyles: { fillColor: [40, 44, 52] },
       columnStyles: { 1: { halign: 'right', cellWidth: 120 } },
       body: [
-        ['Receita anual informada', resultado.receitaAnualInformada === null ? 'N/A' : formatCurrency(resultado.receitaAnualInformada)],
+        [`Receita do contrato (${f.mesesContrato} meses)`, resultado.receitaAnualInformada === null ? 'N/A' : formatCurrency(resultado.receitaAnualInformada)],
         ['Total dos Serviços (DFP)', formatCurrency(resultado.totalServicosDfp)],
         ['Resultado do contrato', resultado.resultadoContratoInformado === null ? 'N/A' : formatCurrency(resultado.resultadoContratoInformado)],
       ],

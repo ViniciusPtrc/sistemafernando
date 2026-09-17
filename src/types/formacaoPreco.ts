@@ -194,10 +194,12 @@ export interface ResultadoFormacaoPreco {
   dre: LinhaDre[];
   comparacaoReferencia: ComparacaoReferencia | null;
   /**
-   * Conferência com o "Total dos Serviços" do DFP oficial (réplica exata da fórmula da
-   * planilha-modelo) — só calculado quando `receitaMensalInformada` é preenchida.
+   * Conferência com o "Total dos Serviços" do DFP oficial (baseada na fórmula da
+   * planilha-modelo, escalada para o período inteiro do contrato — `mesesContrato`, não
+   * só o ano 1) — só calculado quando `receitaMensalInformada` é preenchida.
    */
   totalServicosDfp: number | null;
+  /** Receita do contrato inteiro (`receitaMensalInformada × mesesContrato`), apesar do nome — ver comentário acima. */
   receitaAnualInformada: number | null;
   resultadoContratoInformado: number | null;
 }

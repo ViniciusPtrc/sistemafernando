@@ -139,12 +139,13 @@ export function ResumoResultado({ resultado, lucroPercentAlvo }: ResumoResultado
           <div className="border-b border-graphite-200 p-4">
             <h3 className="text-sm font-semibold text-graphite-900">Conferência com o DFP oficial</h3>
             <p className="text-xs text-graphite-500">
-              Réplica exata do "Total dos Serviços" da planilha-modelo — use para conferir se esta simulação bate com o valor já entregue ao órgão.
+              Baseada no "Total dos Serviços" da planilha-modelo, escalada para o período inteiro do contrato — use para conferir a viabilidade do valor total já
+              negociado com o órgão.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-3">
             <div>
-              <p className="text-xs text-graphite-500">Receita anual informada</p>
+              <p className="text-xs text-graphite-500">Receita do contrato (período informado)</p>
               <p className="text-sm font-medium text-graphite-900">{resultado.receitaAnualInformada === null ? 'N/A' : formatCurrency(resultado.receitaAnualInformada)}</p>
             </div>
             <div>
