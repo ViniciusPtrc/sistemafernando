@@ -51,7 +51,7 @@ const itemsBlock = z.object({ items: z.array(lineItem).default([]) });
 
 const equipmentBlock = z.object({
   items: z.array(assetItem).default([]),
-  residualValuePercent: z.number().min(0).max(1).default(0.85),
+  depreciationPercent: z.number().min(0).max(1).default(0.15),
   capitalMonthlyRatePercent: z.number().min(0).default(0.01),
   capitalPeriodMonths: z.number().min(0).default(12),
 });
@@ -67,7 +67,7 @@ const workingCapitalBlock = z.object({
 
 const vehicleBlock = z.object({
   depreciationItems: z.array(assetItem).default([]),
-  residualValuePercent: z.number().min(0).max(1).default(0.7),
+  depreciationPercent: z.number().min(0).max(1).default(0.3),
   capitalMonthlyRatePercent: z.number().min(0).default(0.01),
   capitalPeriodMonths: z.number().min(0).default(12),
   maintenanceItems: z.array(lineItem).default([]),
@@ -98,10 +98,10 @@ export const createPriceFormationBody = z.object({
 
   materialsApplication: itemsBlock.default({ items: [] }),
   otherMaterials: itemsBlock.default({ items: [] }),
-  equipment: equipmentBlock.default({ items: [], residualValuePercent: 0.85, capitalMonthlyRatePercent: 0.01, capitalPeriodMonths: 12 }),
+  equipment: equipmentBlock.default({ items: [], depreciationPercent: 0.15, capitalMonthlyRatePercent: 0.01, capitalPeriodMonths: 12 }),
   vehicles: vehicleBlock.default({
     depreciationItems: [],
-    residualValuePercent: 0.7,
+    depreciationPercent: 0.3,
     capitalMonthlyRatePercent: 0.01,
     capitalPeriodMonths: 12,
     maintenanceItems: [],

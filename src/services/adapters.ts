@@ -771,14 +771,14 @@ interface ItemsBlockDTO {
 
 interface EquipmentBlockDTO {
   items: AssetItemDTO[];
-  residualValuePercent: number;
+  depreciationPercent: number;
   capitalMonthlyRatePercent: number;
   capitalPeriodMonths: number;
 }
 
 interface VehicleBlockDTO {
   depreciationItems: AssetItemDTO[];
-  residualValuePercent: number;
+  depreciationPercent: number;
   capitalMonthlyRatePercent: number;
   capitalPeriodMonths: number;
   maintenanceItems: LineItemDTO[];
@@ -1003,13 +1003,13 @@ export function mapPriceFormation(dto: PriceFormationDTO): FormacaoPreco {
     outrosMateriais: mapBlocoItens(dto.otherMaterials),
     equipamentos: {
       itens: dto.equipment.items.map(mapLinhaAtivo),
-      valorResidualPercent: dto.equipment.residualValuePercent,
+      depreciacaoPercent: dto.equipment.depreciationPercent,
       capitalTaxaMensalPercent: dto.equipment.capitalMonthlyRatePercent,
       capitalPeriodoMeses: dto.equipment.capitalPeriodMonths,
     },
     veiculos: {
       itensDepreciacao: dto.vehicles.depreciationItems.map(mapLinhaAtivo),
-      valorResidualPercent: dto.vehicles.residualValuePercent,
+      depreciacaoPercent: dto.vehicles.depreciationPercent,
       capitalTaxaMensalPercent: dto.vehicles.capitalMonthlyRatePercent,
       capitalPeriodoMeses: dto.vehicles.capitalPeriodMonths,
       itensManutencao: dto.vehicles.maintenanceItems.map(mapLinhaCusto),
@@ -1149,13 +1149,13 @@ export function buildPriceFormationPayload(f: RascunhoFormacaoPreco) {
     otherMaterials: { items: f.outrosMateriais.itens.map(payloadLinhaCusto) },
     equipment: {
       items: f.equipamentos.itens.map(payloadLinhaAtivo),
-      residualValuePercent: f.equipamentos.valorResidualPercent,
+      depreciationPercent: f.equipamentos.depreciacaoPercent,
       capitalMonthlyRatePercent: f.equipamentos.capitalTaxaMensalPercent,
       capitalPeriodMonths: f.equipamentos.capitalPeriodoMeses,
     },
     vehicles: {
       depreciationItems: f.veiculos.itensDepreciacao.map(payloadLinhaAtivo),
-      residualValuePercent: f.veiculos.valorResidualPercent,
+      depreciationPercent: f.veiculos.depreciacaoPercent,
       capitalMonthlyRatePercent: f.veiculos.capitalTaxaMensalPercent,
       capitalPeriodMonths: f.veiculos.capitalPeriodoMeses,
       maintenanceItems: f.veiculos.itensManutencao.map(payloadLinhaCusto),

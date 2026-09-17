@@ -57,17 +57,21 @@ export interface BlocoItens {
   itens: LinhaCusto[];
 }
 
-/** Remuneração de capital = custo de aquisição × taxa mensal × período (meses) — igual ao DFP oficial. */
+/**
+ * 1.3.1 Depreciação (`depreciacaoPercent` direto sobre o custo de aquisição) e 1.3.2
+ * Remuneração de capital (`capitalTaxaMensalPercent` × `capitalPeriodoMeses`) — dois
+ * blocos separados, igual ao DFP oficial.
+ */
 export interface BlocoEquipamentos {
   itens: LinhaAtivo[];
-  valorResidualPercent: number;
+  depreciacaoPercent: number;
   capitalTaxaMensalPercent: number;
   capitalPeriodoMeses: number;
 }
 
 export interface BlocoVeiculos {
   itensDepreciacao: LinhaAtivo[];
-  valorResidualPercent: number;
+  depreciacaoPercent: number;
   capitalTaxaMensalPercent: number;
   capitalPeriodoMeses: number;
   itensManutencao: LinhaCusto[];

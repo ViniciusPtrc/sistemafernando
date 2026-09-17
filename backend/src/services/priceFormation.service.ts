@@ -67,7 +67,7 @@ interface LaborBlock {
 
 interface EquipmentBlock {
   items: AssetItem[];
-  residualValuePercent: number;
+  depreciationPercent: number;
   capitalMonthlyRatePercent: number;
   capitalPeriodMonths: number;
 }
@@ -122,15 +122,15 @@ function computeLaborBlock(block: LaborBlock | undefined, dailyFullTimeHours: nu
 }
 
 /**
- * Depreciação = custo de aquisição × (1 − valor residual). Remuneração de capital =
- * custo de aquisição × taxa mensal × período (meses) — replica o DFP oficial (ex.:
- * 1%/mês × 12 meses = 12% ao ano sobre o capital imobilizado), em vez de um percentual
- * anual único.
+ * Depreciação = custo de aquisição × depreciationPercent (direto, ex.: 15%). Remuneração
+ * de capital = custo de aquisição × taxa mensal × período (meses) — replica o DFP
+ * oficial (ex.: 1%/mês × 12 meses = 12% ao ano sobre o capital imobilizado), em vez de
+ * um percentual anual único. São dois blocos separados (1.3.1/1.3.2 ou 1.4.1/1.4.2).
  */
-function computeAssetBlock(items: AssetItem[] | undefined, residualValuePercent: number, capitalMonthlyRatePercent: number, capitalPeriodMonths: number) {
+function computeAssetBlock(items: AssetItem[] | undefined, depreciationPercent: number, capitalMonthlyRatePercent: number, capitalPeriodMonths: number) {
   const acquisitionCostCents = sumAssetAcquisition(items);
-  const residualValueCents = Math.round(acquisitionCostCents * (residualValuePercent ?? 0));
-  const depreciationCents = acquisitionCostCents - residualValueCents;
+  const depreciationCents = Math.round(acquisitionCostCents * (depreciationPercent ?? 0));
+  const residualValueCents = acquisitionCostCents - depreciationCents;
   const capitalReturnCents = Math.round(acquisitionCostCents * (capitalMonthlyRatePercent ?? 0) * (capitalPeriodMonths ?? 0));
   const totalCents = depreciationCents + capitalReturnCents;
   return { acquisitionCostCents, residualValueCents, depreciationCents, capitalReturnCents, totalCents };
@@ -159,14 +159,14 @@ export function computeResultado(doc: any) {
 
   const equipment = computeAssetBlock(
     doc.equipment?.items,
-    doc.equipment?.residualValuePercent ?? 0,
+    doc.equipment?.depreciationPercent ?? 0,
     doc.equipment?.capitalMonthlyRatePercent ?? 0,
     doc.equipment?.capitalPeriodMonths ?? 0,
   );
 
   const vehicleDepreciation = computeAssetBlock(
     doc.vehicles?.depreciationItems,
-    doc.vehicles?.residualValuePercent ?? 0,
+    doc.vehicles?.depreciationPercent ?? 0,
     doc.vehicles?.capitalMonthlyRatePercent ?? 0,
     doc.vehicles?.capitalPeriodMonths ?? 0,
   );

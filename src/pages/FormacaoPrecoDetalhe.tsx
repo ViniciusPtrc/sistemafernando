@@ -381,16 +381,29 @@ export default function FormacaoPrecoDetalhePage() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>1.3 Equipamentos de aplicação direta</CardTitle></CardHeader>
+        <CardHeader><CardTitle>1.3.1 Depreciação de equipamentos</CardTitle></CardHeader>
         <CardContent className="flex flex-col gap-4">
           <LinhaAtivoTable itens={rascunho.equipamentos.itens} onChange={(itens) => atualizar('equipamentos', { ...rascunho.equipamentos, itens })} />
-          <div className="grid grid-cols-2 gap-3 border-t border-graphite-100 pt-4 sm:grid-cols-4">
+          <div className="max-w-xs border-t border-graphite-100 pt-4">
             <PercentField
-              label="Valor residual"
-              value={rascunho.equipamentos.valorResidualPercent}
-              onChange={(v) => atualizar('equipamentos', { ...rascunho.equipamentos, valorResidualPercent: v })}
-              hint="% do custo de aquisição ao fim do contrato (ex.: 85% = 15% de depreciação)"
+              label="Depreciação"
+              value={rascunho.equipamentos.depreciacaoPercent}
+              onChange={(v) => atualizar('equipamentos', { ...rascunho.equipamentos, depreciacaoPercent: v })}
+              hint="% do custo de aquisição depreciado no período (ex.: 15%)"
             />
+          </div>
+          <div className="flex flex-col gap-1 border-t border-graphite-100 pt-3 text-right text-sm text-graphite-600">
+            <span>Custos de aquisição: <strong className="text-graphite-900">{formatCurrency(resultado.equipamentos.custoAquisicao)}</strong></span>
+            <span>Valor de depreciação: <strong className="text-graphite-900">{formatCurrency(resultado.equipamentos.depreciacao)}</strong></span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>1.3.2 Remuneração de capital (equipamentos)</CardTitle></CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <p className="text-xs text-graphite-500">Custo de oportunidade do capital imobilizado = custo de aquisição (bloco 1.3.1) × taxa mensal × período.</p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <PercentField
               label="Taxa mensal de capital"
               value={rascunho.equipamentos.capitalTaxaMensalPercent}
@@ -408,57 +421,77 @@ export default function FormacaoPrecoDetalhePage() {
             </label>
           </div>
           <p className="text-right text-sm text-graphite-600">
-            Depreciação + remuneração de capital: <strong className="text-graphite-900">{formatCurrency(resultado.equipamentos.total)}</strong>
+            Remuneração de capital: <strong className="text-graphite-900">{formatCurrency(resultado.equipamentos.remuneracaoCapital)}</strong>
+          </p>
+          <p className="border-t border-graphite-100 pt-3 text-right text-sm text-graphite-600">
+            TOTAL 1.3 (depreciação + remuneração de capital): <strong className="text-graphite-900">{formatCurrency(resultado.equipamentos.total)}</strong>
           </p>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>1.4 Veículos</CardTitle></CardHeader>
-        <CardContent className="flex flex-col gap-6">
-          <div>
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-graphite-400">Depreciação</h4>
-            <LinhaAtivoTable itens={rascunho.veiculos.itensDepreciacao} onChange={(itens) => atualizar('veiculos', { ...rascunho.veiculos, itensDepreciacao: itens })} />
-            <div className="mt-4 grid grid-cols-2 gap-3 border-t border-graphite-100 pt-4 sm:grid-cols-4">
-              <PercentField
-                label="Valor residual"
-                value={rascunho.veiculos.valorResidualPercent}
-                onChange={(v) => atualizar('veiculos', { ...rascunho.veiculos, valorResidualPercent: v })}
-              />
-              <PercentField
-                label="Taxa mensal de capital"
-                value={rascunho.veiculos.capitalTaxaMensalPercent}
-                onChange={(v) => atualizar('veiculos', { ...rascunho.veiculos, capitalTaxaMensalPercent: v })}
-              />
-              <label className="flex flex-col gap-1 text-xs font-medium text-graphite-500">
-                Período (meses)
-                <Input
-                  type="number"
-                  min={0}
-                  value={rascunho.veiculos.capitalPeriodoMeses}
-                  onChange={(e) => atualizar('veiculos', { ...rascunho.veiculos, capitalPeriodoMeses: Number(e.target.value) || 0 })}
-                />
-              </label>
-            </div>
-          </div>
-
-          <div className="border-t border-graphite-100 pt-4">
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-graphite-400">Manutenção</h4>
-            <LinhaCustoTable
-              itens={rascunho.veiculos.itensManutencao}
-              onChange={(itens) => atualizar('veiculos', { ...rascunho.veiculos, itensManutencao: itens })}
-              rotuloVezesPorAno="Vezes/ano"
-              vezesPorAnoPadrao={1}
+        <CardHeader><CardTitle>1.4.1 Depreciação de veículos</CardTitle></CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <LinhaAtivoTable itens={rascunho.veiculos.itensDepreciacao} onChange={(itens) => atualizar('veiculos', { ...rascunho.veiculos, itensDepreciacao: itens })} />
+          <div className="max-w-xs border-t border-graphite-100 pt-4">
+            <PercentField
+              label="Depreciação"
+              value={rascunho.veiculos.depreciacaoPercent}
+              onChange={(v) => atualizar('veiculos', { ...rascunho.veiculos, depreciacaoPercent: v })}
+              hint="% do custo de aquisição depreciado no período (ex.: 30%)"
             />
           </div>
-
-          <div className="border-t border-graphite-100 pt-4">
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-graphite-400">Combustível</h4>
-            <LinhaCombustivelTable itens={rascunho.veiculos.itensCombustivel} onChange={(itens) => atualizar('veiculos', { ...rascunho.veiculos, itensCombustivel: itens })} />
+          <div className="flex flex-col gap-1 border-t border-graphite-100 pt-3 text-right text-sm text-graphite-600">
+            <span>Custos de aquisição: <strong className="text-graphite-900">{formatCurrency(resultado.veiculos.depreciacao.custoAquisicao)}</strong></span>
+            <span>Valor de depreciação: <strong className="text-graphite-900">{formatCurrency(resultado.veiculos.depreciacao.depreciacao)}</strong></span>
           </div>
+        </CardContent>
+      </Card>
 
+      <Card>
+        <CardHeader><CardTitle>1.4.2 Remuneração de capital (veículos)</CardTitle></CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <p className="text-xs text-graphite-500">Custo de oportunidade do capital imobilizado = custo de aquisição (bloco 1.4.1) × taxa mensal × período.</p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <PercentField
+              label="Taxa mensal de capital"
+              value={rascunho.veiculos.capitalTaxaMensalPercent}
+              onChange={(v) => atualizar('veiculos', { ...rascunho.veiculos, capitalTaxaMensalPercent: v })}
+            />
+            <label className="flex flex-col gap-1 text-xs font-medium text-graphite-500">
+              Período (meses)
+              <Input
+                type="number"
+                min={0}
+                value={rascunho.veiculos.capitalPeriodoMeses}
+                onChange={(e) => atualizar('veiculos', { ...rascunho.veiculos, capitalPeriodoMeses: Number(e.target.value) || 0 })}
+              />
+            </label>
+          </div>
           <p className="text-right text-sm text-graphite-600">
-            Total de veículos: <strong className="text-graphite-900">{formatCurrency(resultado.veiculos.total)}</strong>
+            Remuneração de capital: <strong className="text-graphite-900">{formatCurrency(resultado.veiculos.depreciacao.remuneracaoCapital)}</strong>
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>1.4.3 Manutenção de veículos</CardTitle></CardHeader>
+        <CardContent>
+          <LinhaCustoTable
+            itens={rascunho.veiculos.itensManutencao}
+            onChange={(itens) => atualizar('veiculos', { ...rascunho.veiculos, itensManutencao: itens })}
+            rotuloVezesPorAno="Vezes/ano"
+            vezesPorAnoPadrao={1}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>1.4.4 Combustível</CardTitle></CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <LinhaCombustivelTable itens={rascunho.veiculos.itensCombustivel} onChange={(itens) => atualizar('veiculos', { ...rascunho.veiculos, itensCombustivel: itens })} />
+          <p className="border-t border-graphite-100 pt-3 text-right text-sm text-graphite-600">
+            TOTAL 1.4 (depreciação + remuneração de capital + manutenção + combustível): <strong className="text-graphite-900">{formatCurrency(resultado.veiculos.total)}</strong>
           </p>
         </CardContent>
       </Card>

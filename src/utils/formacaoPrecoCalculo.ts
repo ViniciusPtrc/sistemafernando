@@ -66,14 +66,15 @@ function calcBlocoMaoDeObra(b: BlocoMaoDeObra, jornadaIntegralHorasDia: number):
 }
 
 /**
- * Depreciação = custo de aquisição × (1 − valor residual). Remuneração de capital =
- * custo de aquisição × taxa mensal × período (meses) — replica o DFP oficial (ex.:
- * 1%/mês × 12 meses = 12% ao ano), em vez de um percentual anual único.
+ * Depreciação = custo de aquisição × depreciacaoPercent (direto, ex.: 15%). Remuneração
+ * de capital = custo de aquisição × taxa mensal × período (meses) — replica o DFP
+ * oficial (ex.: 1%/mês × 12 meses = 12% ao ano), em vez de um percentual anual único.
+ * São dois blocos separados (1.3.1/1.3.2 ou 1.4.1/1.4.2), igual à planilha.
  */
-function calcBlocoAtivo(itens: LinhaAtivo[], valorResidualPercent: number, capitalTaxaMensalPercent: number, capitalPeriodoMeses: number): ResultadoBlocoAtivo {
+function calcBlocoAtivo(itens: LinhaAtivo[], depreciacaoPercent: number, capitalTaxaMensalPercent: number, capitalPeriodoMeses: number): ResultadoBlocoAtivo {
   const custoAquisicao = somaAquisicao(itens);
-  const valorResidual = custoAquisicao * valorResidualPercent;
-  const depreciacao = custoAquisicao - valorResidual;
+  const depreciacao = custoAquisicao * depreciacaoPercent;
+  const valorResidual = custoAquisicao - depreciacao;
   const remuneracaoCapital = custoAquisicao * capitalTaxaMensalPercent * capitalPeriodoMeses;
   return { custoAquisicao, valorResidual, depreciacao, remuneracaoCapital, total: depreciacao + remuneracaoCapital };
 }
@@ -96,11 +97,11 @@ export function calcularResultado(f: RascunhoFormacaoPreco): ResultadoFormacaoPr
   const outrosMateriais = somaLinhaCusto(f.outrosMateriais.itens);
   const materiaisTotal = materiaisAplicacao + outrosMateriais;
 
-  const equipamentos = calcBlocoAtivo(f.equipamentos.itens, f.equipamentos.valorResidualPercent, f.equipamentos.capitalTaxaMensalPercent, f.equipamentos.capitalPeriodoMeses);
+  const equipamentos = calcBlocoAtivo(f.equipamentos.itens, f.equipamentos.depreciacaoPercent, f.equipamentos.capitalTaxaMensalPercent, f.equipamentos.capitalPeriodoMeses);
 
   const veiculosDepreciacao = calcBlocoAtivo(
     f.veiculos.itensDepreciacao,
-    f.veiculos.valorResidualPercent,
+    f.veiculos.depreciacaoPercent,
     f.veiculos.capitalTaxaMensalPercent,
     f.veiculos.capitalPeriodoMeses,
   );
@@ -263,10 +264,10 @@ export function novaLinhaCombustivel(): LinhaCombustivel {
 
 export function formacaoPrecoVazia(companyId: string): RascunhoFormacaoPreco {
   const blocoMaoDeObra = (): BlocoMaoDeObra => ({ itens: [], encargosSociaisPercent: 0.6566, horaExtraPercent: 0, periculosidadePercent: 0, outrosAdicionaisPercent: 0 });
-  const blocoEquipamentos = (): BlocoEquipamentos => ({ itens: [], valorResidualPercent: 0.85, capitalTaxaMensalPercent: 0.01, capitalPeriodoMeses: 12 });
+  const blocoEquipamentos = (): BlocoEquipamentos => ({ itens: [], depreciacaoPercent: 0.15, capitalTaxaMensalPercent: 0.01, capitalPeriodoMeses: 12 });
   const blocoVeiculos = (): BlocoVeiculos => ({
     itensDepreciacao: [],
-    valorResidualPercent: 0.7,
+    depreciacaoPercent: 0.3,
     capitalTaxaMensalPercent: 0.01,
     capitalPeriodoMeses: 12,
     itensManutencao: [],

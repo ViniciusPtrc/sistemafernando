@@ -78,13 +78,14 @@ const laborBlockSchema = new Schema(
 );
 
 /**
- * Remuneração de capital = custo de aquisição × taxa mensal × período (meses) — igual
- * ao DFP oficial (ex.: 1% ao mês × 12 meses = 12% ao ano sobre o capital imobilizado).
+ * 1.3.1/1.4.1 Depreciação (`depreciationPercent` direto sobre o custo de aquisição) e
+ * 1.3.2/1.4.2 Remuneração de capital (`capitalMonthlyRatePercent` × `capitalPeriodMonths`,
+ * ex.: 1% ao mês × 12 meses = 12% ao ano) — dois blocos separados, igual ao DFP oficial.
  */
 const equipmentBlockSchema = new Schema(
   {
     items: { type: [assetItemSchema], default: [] },
-    residualValuePercent: { type: Number, default: 0.85 },
+    depreciationPercent: { type: Number, default: 0.15 },
     capitalMonthlyRatePercent: { type: Number, default: 0.01 },
     capitalPeriodMonths: { type: Number, default: 12 },
   },
@@ -94,7 +95,7 @@ const equipmentBlockSchema = new Schema(
 const vehicleBlockSchema = new Schema(
   {
     depreciationItems: { type: [assetItemSchema], default: [] },
-    residualValuePercent: { type: Number, default: 0.7 },
+    depreciationPercent: { type: Number, default: 0.3 },
     capitalMonthlyRatePercent: { type: Number, default: 0.01 },
     capitalPeriodMonths: { type: Number, default: 12 },
     maintenanceItems: { type: [lineItemSchema], default: [] },
