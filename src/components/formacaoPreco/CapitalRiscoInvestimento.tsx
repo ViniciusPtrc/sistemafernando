@@ -16,8 +16,8 @@ export function CapitalRiscoInvestimento({ contingenciaPercent, capitalGiro, res
   const prazosIguais = capitalGiro.prazoRecebimentoDias === capitalGiro.prazoPagamentoDias;
   // Reverte o gross-up só do custo financeiro, mantendo a mesma proporção custo→preço do restante da base de custos.
   const precoSemCustoFinanceiro =
-    resultado.precoMinimo !== null && resultado.totalCustosComContingencia > 0
-      ? (resultado.precoMinimo * (resultado.totalCustosComContingencia - resultado.custoFinanceiroValor)) / resultado.totalCustosComContingencia
+    resultado.precoAdotado !== null && resultado.totalCustosComContingencia > 0
+      ? (resultado.precoAdotado * (resultado.totalCustosComContingencia - resultado.custoFinanceiroValor)) / resultado.totalCustosComContingencia
       : null;
 
   return (

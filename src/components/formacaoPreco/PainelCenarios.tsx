@@ -55,7 +55,7 @@ export function PainelCenarios({ rascunho }: PainelCenariosProps) {
               <tr className="text-left text-[11px] font-medium text-graphite-400">
                 <th className="py-1.5">Cenário</th>
                 <th className="py-1.5 text-right">Custo total</th>
-                <th className="py-1.5 text-right">Preço mínimo</th>
+                <th className="py-1.5 text-right">{cenarios[0]?.resultado.contratoFechado ? 'Preço do contrato' : 'Preço mínimo'}</th>
                 <th className="py-1.5 text-right">Lucro</th>
                 <th className="py-1.5 text-right">Margem</th>
               </tr>
@@ -65,10 +65,10 @@ export function PainelCenarios({ rascunho }: PainelCenariosProps) {
                 <tr key={c.nome}>
                   <td className="py-1.5 font-medium text-graphite-800">{c.nome}</td>
                   <td className="py-1.5 text-right text-graphite-700">{formatCurrency(c.resultado.totalCustosComContingencia)}</td>
-                  <td className="py-1.5 text-right font-medium text-graphite-900">{c.resultado.precoMinimo === null ? 'N/A' : formatCurrency(c.resultado.precoMinimo)}</td>
+                  <td className="py-1.5 text-right font-medium text-graphite-900">{c.resultado.precoAdotado === null ? 'N/A' : formatCurrency(c.resultado.precoAdotado)}</td>
                   <td className="py-1.5 text-right text-graphite-700">{formatCurrency(c.resultado.lucroValor)}</td>
                   <td className="py-1.5 text-right text-graphite-700">
-                    {c.resultado.precoMinimo ? formatPercent((c.resultado.lucroValor / c.resultado.precoMinimo) * 100) : 'N/A'}
+                    {c.resultado.precoAdotado ? formatPercent((c.resultado.lucroValor / c.resultado.precoAdotado) * 100) : 'N/A'}
                   </td>
                 </tr>
               ))}

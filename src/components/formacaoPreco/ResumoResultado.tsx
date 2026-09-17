@@ -10,21 +10,32 @@ interface ResumoResultadoProps {
 }
 
 export function ResumoResultado({ resultado, lucroPercentAlvo }: ResumoResultadoProps) {
-  const { comparacaoReferencia } = resultado;
+  const { comparacaoReferencia, contratoFechado } = resultado;
   const temConferenciaDfp = resultado.totalServicosDfp !== null;
+  const margemRealPct = contratoFechado && resultado.precoAdotado ? (resultado.lucroValor / resultado.precoAdotado) * 100 : null;
 
   return (
     <div className="flex flex-col gap-4">
+      {contratoFechado && (
+        <p className="rounded-lg bg-graphite-50 px-4 py-2 text-xs text-graphite-600">
+          Contrato já fechado (receita mensal informada) — os números abaixo mostram a viabilidade real desse preço, não uma meta a atingir.
+        </p>
+      )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <FinancialCard titulo="Total de custos diretos" valor={formatCurrency(resultado.totalCustosDiretos)} icone={<TrendingDown className="h-4 w-4" />} tom="negativo" />
         <FinancialCard
-          titulo="Preço mínimo necessário"
-          valor={resultado.precoMinimo === null ? 'N/A' : formatCurrency(resultado.precoMinimo)}
+          titulo={contratoFechado ? 'Preço do contrato (fechado)' : 'Preço mínimo necessário'}
+          valor={resultado.precoAdotado === null ? 'N/A' : formatCurrency(resultado.precoAdotado)}
           icone={<Wallet className="h-4 w-4" />}
           tom="destaque"
-          linhaDetalhe="p/ bater a margem-alvo"
+          linhaDetalhe={contratoFechado ? 'já negociado — não é uma meta' : 'p/ bater a margem-alvo'}
         />
-        <FinancialCard titulo="Margem-alvo" valor={formatPercent(lucroPercentAlvo * 100)} icone={<Percent className="h-4 w-4" />} linhaDetalhe={formatCurrency(resultado.lucroValor)} />
+        <FinancialCard
+          titulo={contratoFechado ? 'Margem real' : 'Margem-alvo'}
+          valor={formatPercent(contratoFechado ? margemRealPct ?? 0 : lucroPercentAlvo * 100)}
+          icone={<Percent className="h-4 w-4" />}
+          linhaDetalhe={formatCurrency(resultado.lucroValor)}
+        />
         <FinancialCard
           titulo="Tributos no preço"
           valor={formatCurrency(resultado.tributosValor)}

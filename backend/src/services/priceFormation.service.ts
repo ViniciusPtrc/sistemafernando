@@ -210,40 +210,58 @@ export function computeResultado(doc: any) {
   const taxesPercent = costBasedTaxesPercent + revenueBasedTaxesPercent;
   const k = indirectCostsPercent + profitPercent + taxesPercent;
 
+  /** Preço mínimo teórico via gross-up — não usado quando o contrato já está fechado (ver `adoptedPriceCents` abaixo). */
   const minimumPriceCents = k < 1 ? Math.round(costsBaseForPriceCents / (1 - k)) : null;
-  const indirectCostsValueCents = minimumPriceCents === null ? 0 : Math.round(indirectCostsPercent * minimumPriceCents);
-  const profitValueCents = minimumPriceCents === null ? 0 : Math.round(profitPercent * minimumPriceCents);
-  const costBasedTaxesValueCents = minimumPriceCents === null ? 0 : Math.round(costBasedTaxesPercent * minimumPriceCents);
-  const revenueBasedTaxesValueCents = minimumPriceCents === null ? 0 : Math.round(revenueBasedTaxesPercent * minimumPriceCents);
-  const taxesValueCents = costBasedTaxesValueCents + revenueBasedTaxesValueCents;
-
-  /** Linhas "Total dos Custos" e "Total dos Custos + Lucro" da planilha-modelo. */
-  const totalCostsCents = costsBaseForPriceCents + indirectCostsValueCents;
-  const totalCostsPlusProfitCents = totalCostsCents + profitValueCents;
 
   /** Mesma fórmula do preço mínimo, mas sem a parcela de lucro — preço em que o resultado econômico é zero. */
   const kBreakeven = indirectCostsPercent + taxesPercent;
   const breakevenPriceCents = kBreakeven < 1 ? Math.round(costsBaseForPriceCents / (1 - kBreakeven)) : null;
 
+  const informedMonthlyRevenueCents: number | null = doc.informedMonthlyRevenueCents ?? null;
+
+  /**
+   * Quando o contrato já está fechado (receita mensal informada), esse é o preço real
+   * usado daqui pra baixo em vez do preço mínimo teórico — a ferramenta deixa de
+   * "formar um preço" e passa a checar a viabilidade do preço que já foi negociado.
+   */
+  const closedContract = informedMonthlyRevenueCents !== null && informedMonthlyRevenueCents > 0;
+  const adoptedPriceCents = closedContract ? informedMonthlyRevenueCents! * contractMonths : minimumPriceCents;
+
+  const indirectCostsValueCents = adoptedPriceCents === null ? 0 : Math.round(indirectCostsPercent * adoptedPriceCents);
+  const costBasedTaxesValueCents = adoptedPriceCents === null ? 0 : Math.round(costBasedTaxesPercent * adoptedPriceCents);
+  const revenueBasedTaxesValueCents = adoptedPriceCents === null ? 0 : Math.round(revenueBasedTaxesPercent * adoptedPriceCents);
+  const taxesValueCents = costBasedTaxesValueCents + revenueBasedTaxesValueCents;
+
+  /**
+   * Lucro real (residual): preço adotado − tributos − indiretos − custos. Quando o
+   * contrato não está fechado, isso é algebricamente idêntico a `profitPercent ×
+   * minimumPriceCents` — o preço mínimo é resolvido exatamente para satisfazer essa margem.
+   */
+  const profitValueCents = adoptedPriceCents === null ? 0 : adoptedPriceCents - taxesValueCents - indirectCostsValueCents - costsBaseForPriceCents;
+
+  /** Linhas "Total dos Custos" e "Total dos Custos + Lucro" da planilha-modelo. */
+  const totalCostsCents = costsBaseForPriceCents + indirectCostsValueCents;
+  const totalCostsPlusProfitCents = totalCostsCents + profitValueCents;
+
   /** Lucro sobre o custo total (diretos + contingência + financeiro + indiretos + tributos) — distinto da margem, que é sobre o preço. */
   const costTotalExcludingProfitCents = costsBaseForPriceCents + indirectCostsValueCents + taxesValueCents;
-  const markupPercent = minimumPriceCents !== null && costTotalExcludingProfitCents > 0 ? (profitValueCents / costTotalExcludingProfitCents) * 100 : null;
+  const markupPercent = adoptedPriceCents !== null && costTotalExcludingProfitCents > 0 ? (profitValueCents / costTotalExcludingProfitCents) * 100 : null;
 
   /** Investimento inicial = aquisição de equipamentos + veículos + capital de giro + outros investimentos declarados. */
   const initialInvestmentCents = equipment.acquisitionCostCents + vehicleDepreciation.acquisitionCostCents + workingCapitalNeededCents + (wc.otherInitialInvestmentCents ?? 0);
-  const roiTotalPercent = minimumPriceCents !== null && initialInvestmentCents > 0 ? (profitValueCents / initialInvestmentCents) * 100 : null;
+  const roiTotalPercent = adoptedPriceCents !== null && initialInvestmentCents > 0 ? (profitValueCents / initialInvestmentCents) * 100 : null;
   const roiAnnualPercent = roiTotalPercent === null ? null : roiTotalPercent / (contractMonths / 12);
-  const paybackMonths = minimumPriceCents !== null && profitValueCents > 0 ? initialInvestmentCents / (profitValueCents / contractMonths) : null;
+  const paybackMonths = adoptedPriceCents !== null && profitValueCents > 0 ? initialInvestmentCents / (profitValueCents / contractMonths) : null;
 
-  const monthlyValueCents = minimumPriceCents === null ? null : Math.round(minimumPriceCents / contractMonths);
+  const monthlyValueCents = adoptedPriceCents === null ? null : Math.round(adoptedPriceCents / contractMonths);
   const annualValueCents = monthlyValueCents === null ? null : monthlyValueCents * 12;
   const unitCount = doc.unitCount ?? null;
-  const valuePerUnitCents = minimumPriceCents === null || !unitCount ? null : Math.round(minimumPriceCents / unitCount);
+  const valuePerUnitCents = adoptedPriceCents === null || !unitCount ? null : Math.round(adoptedPriceCents / unitCount);
 
-  const dre = minimumPriceCents === null
+  const dre = adoptedPriceCents === null
     ? []
     : [
-        { label: 'Faturamento (preço total)', valorCents: minimumPriceCents },
+        { label: 'Faturamento (preço total)', valorCents: adoptedPriceCents },
         { label: '(-) Tributos', valorCents: -taxesValueCents },
         { label: '(-) Mão de obra', valorCents: -laborTotalCents },
         { label: '(-) Materiais', valorCents: -materialsTotalCents },
@@ -253,9 +271,7 @@ export function computeResultado(doc: any) {
         { label: '(-) Custo financeiro', valorCents: -financialCostCents },
         { label: '(-) Custos indiretos (administração)', valorCents: -indirectCostsValueCents },
         { label: '(=) Lucro', valorCents: profitValueCents },
-      ].map((l) => ({ ...l, percentualDaReceita: minimumPriceCents > 0 ? (l.valorCents / minimumPriceCents) * 100 : 0 }));
-
-  const informedMonthlyRevenueCents: number | null = doc.informedMonthlyRevenueCents ?? null;
+      ].map((l) => ({ ...l, percentualDaReceita: adoptedPriceCents > 0 ? (l.valorCents / adoptedPriceCents) * 100 : 0 }));
 
   /**
    * Se não houver preço-teto do edital informado, mas houver uma receita mensal já
@@ -325,6 +341,8 @@ export function computeResultado(doc: any) {
     tributosSobreReceitaValorCents: revenueBasedTaxesValueCents,
     precoMinimoCents: minimumPriceCents,
     precoEquilibrioCents: breakevenPriceCents,
+    contratoFechado: closedContract,
+    precoAdotadoCents: adoptedPriceCents,
     markupPercent,
     valorMensalCents: monthlyValueCents,
     valorAnualCents: annualValueCents,

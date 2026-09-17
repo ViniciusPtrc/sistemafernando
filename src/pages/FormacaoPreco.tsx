@@ -115,9 +115,14 @@ export default function FormacaoPrecoPage() {
                     )}
                     <div className="mt-2 flex flex-col gap-0.5 text-sm">
                       <span className="text-graphite-500">
-                        Preço mínimo: <strong className="text-graphite-900">{f.resultado.precoMinimo === null ? 'N/A' : formatCurrency(f.resultado.precoMinimo)}</strong>
+                        {f.resultado.contratoFechado ? 'Preço do contrato' : 'Preço mínimo'}:{' '}
+                        <strong className="text-graphite-900">{f.resultado.precoAdotado === null ? 'N/A' : formatCurrency(f.resultado.precoAdotado)}</strong>
                       </span>
-                      <span className="text-graphite-500">Margem-alvo: {formatPercent(f.lucroPercent * 100)}</span>
+                      <span className="text-graphite-500">
+                        {f.resultado.contratoFechado
+                          ? `Margem real: ${formatPercent(f.resultado.precoAdotado ? (f.resultado.lucroValor / f.resultado.precoAdotado) * 100 : 0)}`
+                          : `Margem-alvo: ${formatPercent(f.lucroPercent * 100)}`}
+                      </span>
                       {f.resultado.comparacaoReferencia && (
                         <span className={f.resultado.comparacaoReferencia.viavel ? 'font-medium text-positive-600' : 'font-medium text-negative-600'}>
                           {f.resultado.comparacaoReferencia.viavel ? 'Vale a pena no preço de referência' : 'Não vale a pena no preço de referência'}

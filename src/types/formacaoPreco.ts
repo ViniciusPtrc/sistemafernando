@@ -145,6 +145,11 @@ export interface ResultadoFormacaoPreco {
   /** Total dos Custos Diretos + Custos Indiretos (linha "Total dos Custos" da planilha-modelo). */
   totalCustos: number;
   custosIndiretosValor: number;
+  /**
+   * Lucro real (residual): preço adotado − tributos − indiretos − custos. Quando não há
+   * `receitaMensalInformada`, isso coincide algebricamente com `lucroPercent × precoMinimo`
+   * (o preço mínimo é resolvido exatamente para satisfazer essa margem-alvo).
+   */
   lucroValor: number;
   /** Total dos Custos + Lucro (linha da planilha-modelo, base para os tributos "sobre o custo"). */
   totalCustosMaisLucro: number;
@@ -152,17 +157,21 @@ export interface ResultadoFormacaoPreco {
   tributosValor: number;
   tributosSobreCustoValor: number;
   tributosSobreReceitaValor: number;
-  /** Preço mínimo para bater a margem-alvo (lucroPercent). */
+  /** Preço mínimo teórico para bater a margem-alvo (lucroPercent), via gross-up — não usado quando o contrato já está fechado (ver `contratoFechado`). */
   precoMinimo: number | null;
   /** Preço em que o resultado econômico é zero (mesma fórmula, sem a parcela de lucro). */
   precoEquilibrio: number | null;
+  /** true quando `receitaMensalInformada` foi preenchida: o contrato já está fechado, então lucro/margem/ROI/DRE usam o preço real, não uma meta. */
+  contratoFechado: boolean;
+  /** Preço efetivamente usado para lucro/margem/ROI/DRE/valor mensal: `receitaMensalInformada × mesesContrato` quando o contrato está fechado, senão `precoMinimo`. */
+  precoAdotado: number | null;
   /** Lucro sobre o custo total (custos diretos + indiretos + tributos) — não confundir com a margem sobre o preço. */
   markupPercent: number | null;
-  /** Valor mensal do contrato = preço mínimo ÷ meses do contrato. */
+  /** Valor mensal do contrato = preço adotado ÷ meses do contrato (= receita informada, quando o contrato está fechado). */
   valorMensal: number | null;
   /** Valor anual do contrato = valor mensal × 12. */
   valorAnual: number | null;
-  /** Preço mínimo ÷ quantidade de unidades/equipamentos, quando informada. */
+  /** Preço adotado ÷ quantidade de unidades/equipamentos, quando informada. */
   valorPorUnidade: number | null;
   /** Valor do buffer de contingência (% sobre custos diretos), aplicado antes do gross-up. */
   contingenciaValor: number;

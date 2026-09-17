@@ -856,6 +856,8 @@ interface ResultadoDTO {
   tributosSobreReceitaValorCents: number;
   precoMinimoCents: number | null;
   precoEquilibrioCents: number | null;
+  contratoFechado: boolean;
+  precoAdotadoCents: number | null;
   markupPercent: number | null;
   valorMensalCents: number | null;
   valorAnualCents: number | null;
@@ -1066,6 +1068,8 @@ export function mapPriceFormation(dto: PriceFormationDTO): FormacaoPreco {
       tributosSobreReceitaValor: centsToReais(dto.resultado.tributosSobreReceitaValorCents),
       precoMinimo: dto.resultado.precoMinimoCents == null ? null : centsToReais(dto.resultado.precoMinimoCents),
       precoEquilibrio: dto.resultado.precoEquilibrioCents == null ? null : centsToReais(dto.resultado.precoEquilibrioCents),
+      contratoFechado: dto.resultado.contratoFechado,
+      precoAdotado: dto.resultado.precoAdotadoCents == null ? null : centsToReais(dto.resultado.precoAdotadoCents),
       markupPercent: dto.resultado.markupPercent,
       valorMensal: dto.resultado.valorMensalCents == null ? null : centsToReais(dto.resultado.valorMensalCents),
       valorAnual: dto.resultado.valorAnualCents == null ? null : centsToReais(dto.resultado.valorAnualCents),

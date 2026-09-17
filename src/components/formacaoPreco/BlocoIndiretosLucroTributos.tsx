@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Input } from '@/components/ui/Input';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrency, formatPercent } from '@/utils/format';
 import type { ResultadoFormacaoPreco } from '@/types';
 
 interface BlocoIndiretosLucroTributosProps {
@@ -60,8 +60,10 @@ function LinhaTabela({
  * Mesma estrutura em tabela da planilha-modelo do DFP: 2. CUSTOS INDIRETOS → LUCRO →
  * TRIBUTOS, cada bloco com Item | Percentual (%) | Base de Cálculo (R$) | Total (R$),
  * e as linhas de totais acumulados (TOTAL 2., Total dos Custos, Total dos Custos + Lucro).
- * Todos os percentuais são aplicados sobre o preço mínimo (base de cálculo) — é assim
- * que o preço é calculado "por dentro" (gross-up).
+ * Todos os percentuais são aplicados sobre o preço adotado (base de cálculo) — o preço
+ * mínimo teórico quando ainda não há contrato fechado, ou a receita real informada
+ * quando já há. Quando o contrato está fechado, o Lucro deixa de ser uma meta em % e
+ * passa a ser o resultado real (residual) do preço fechado menos os custos.
  */
 export function BlocoIndiretosLucroTributos({
   custosIndiretosPercent,
@@ -74,7 +76,8 @@ export function BlocoIndiretosLucroTributos({
   onChangeTributosSobreCusto,
   onChangeTributosSobreReceita,
 }: BlocoIndiretosLucroTributosProps) {
-  const base = resultado.precoMinimo ?? 0;
+  const base = resultado.precoAdotado ?? 0;
+  const contratoFechado = resultado.contratoFechado;
   const cabecalho = (
     <div className="grid grid-cols-[1fr_110px_140px_140px] gap-2 px-4 py-2 text-[11px] font-medium text-graphite-400">
       <span>Item</span>
@@ -103,11 +106,22 @@ export function BlocoIndiretosLucroTributos({
 
       <div className="overflow-hidden rounded-lg border border-graphite-200">
         <div className="border-b border-graphite-200 bg-graphite-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-graphite-500">Lucro</div>
+        {contratoFechado && (
+          <p className="border-b border-graphite-100 bg-graphite-50/50 px-4 py-2 text-[11px] text-graphite-500">
+            Contrato já fechado — o lucro é o resultado real (receita menos custos), este percentual não é usado no cálculo.
+          </p>
+        )}
         {cabecalho}
         <div className="flex flex-col divide-y divide-graphite-100 border-t border-graphite-100">
           <LinhaTabela
             item="Lucro"
-            percentual={<CampoPercentTabela value={lucroPercent} onChange={onChangeLucro} />}
+            percentual={
+              contratoFechado ? (
+                <span className="text-sm text-graphite-500">{formatPercent(base > 0 ? (resultado.lucroValor / base) * 100 : 0)} (real)</span>
+              ) : (
+                <CampoPercentTabela value={lucroPercent} onChange={onChangeLucro} />
+              )
+            }
             base={base}
             total={resultado.lucroValor}
           />
@@ -136,7 +150,8 @@ export function BlocoIndiretosLucroTributos({
       </div>
 
       <p className="text-right text-sm text-graphite-600">
-        TOTAL DOS SERVIÇOS (preço mínimo): <strong className="text-graphite-900">{resultado.precoMinimo === null ? 'N/A' : formatCurrency(resultado.precoMinimo)}</strong>
+        TOTAL DOS SERVIÇOS ({contratoFechado ? 'preço do contrato fechado' : 'preço mínimo'}):{' '}
+        <strong className="text-graphite-900">{resultado.precoAdotado === null ? 'N/A' : formatCurrency(resultado.precoAdotado)}</strong>
       </p>
     </div>
   );

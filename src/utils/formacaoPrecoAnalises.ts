@@ -168,9 +168,9 @@ function pontoSensibilidade(f: RascunhoFormacaoPreco, variacaoPercent: number, a
   return {
     variacaoPercent,
     custoTotal: r.totalCustosComContingencia,
-    preco: r.precoMinimo,
+    preco: r.precoAdotado,
     lucro: r.lucroValor,
-    margemPercent: r.precoMinimo ? (r.lucroValor / r.precoMinimo) * 100 : null,
+    margemPercent: r.precoAdotado ? (r.lucroValor / r.precoAdotado) * 100 : null,
   };
 }
 

@@ -139,40 +139,56 @@ export function calcularResultado(f: RascunhoFormacaoPreco): ResultadoFormacaoPr
 
   const tributosPercent = (f.tributosSobreCustoPercent ?? 0) + (f.tributosSobreReceitaPercent ?? 0);
   const k = f.custosIndiretosPercent + f.lucroPercent + tributosPercent;
+  /** Preço mínimo teórico via gross-up — não usado quando o contrato já está fechado (ver `precoAdotado` abaixo). */
   const precoMinimo = k < 1 ? totalCustosComContingencia / (1 - k) : null;
-  const custosIndiretosValor = precoMinimo === null ? 0 : f.custosIndiretosPercent * precoMinimo;
-  const lucroValor = precoMinimo === null ? 0 : f.lucroPercent * precoMinimo;
-  const tributosSobreCustoValor = precoMinimo === null ? 0 : (f.tributosSobreCustoPercent ?? 0) * precoMinimo;
-  const tributosSobreReceitaValor = precoMinimo === null ? 0 : (f.tributosSobreReceitaPercent ?? 0) * precoMinimo;
-  const tributosValor = tributosSobreCustoValor + tributosSobreReceitaValor;
-
-  /** Linhas "Total dos Custos" e "Total dos Custos + Lucro" da planilha-modelo. */
-  const totalCustos = totalCustosComContingencia + custosIndiretosValor;
-  const totalCustosMaisLucro = totalCustos + lucroValor;
 
   /** Mesma fórmula do preço mínimo, mas sem a parcela de lucro — preço em que o resultado econômico é zero. */
   const kEquilibrio = f.custosIndiretosPercent + tributosPercent;
   const precoEquilibrio = kEquilibrio < 1 ? totalCustosComContingencia / (1 - kEquilibrio) : null;
 
+  /**
+   * Quando o contrato já está fechado (receita mensal informada), esse é o preço real
+   * usado daqui pra baixo em vez do preço mínimo teórico — a ferramenta deixa de
+   * "formar um preço" e passa a checar a viabilidade do preço que já foi negociado.
+   */
+  const contratoFechado = f.receitaMensalInformada != null && f.receitaMensalInformada > 0;
+  const precoAdotado = contratoFechado ? f.receitaMensalInformada! * meses : precoMinimo;
+
+  const custosIndiretosValor = precoAdotado === null ? 0 : f.custosIndiretosPercent * precoAdotado;
+  const tributosSobreCustoValor = precoAdotado === null ? 0 : (f.tributosSobreCustoPercent ?? 0) * precoAdotado;
+  const tributosSobreReceitaValor = precoAdotado === null ? 0 : (f.tributosSobreReceitaPercent ?? 0) * precoAdotado;
+  const tributosValor = tributosSobreCustoValor + tributosSobreReceitaValor;
+
+  /**
+   * Lucro real (residual): preço adotado − tributos − indiretos − custos. Quando o
+   * contrato não está fechado, isso é algebricamente idêntico a `lucroPercent ×
+   * precoMinimo` — o preço mínimo é resolvido exatamente para satisfazer essa margem.
+   */
+  const lucroValor = precoAdotado === null ? 0 : precoAdotado - tributosValor - custosIndiretosValor - totalCustosComContingencia;
+
+  /** Linhas "Total dos Custos" e "Total dos Custos + Lucro" da planilha-modelo. */
+  const totalCustos = totalCustosComContingencia + custosIndiretosValor;
+  const totalCustosMaisLucro = totalCustos + lucroValor;
+
   /** Lucro sobre o custo total (diretos + contingência + financeiro + indiretos + tributos) — distinto da margem, que é sobre o preço. */
   const custoTotalSemLucro = totalCustosComContingencia + custosIndiretosValor + tributosValor;
-  const markupPercent = precoMinimo !== null && custoTotalSemLucro > 0 ? (lucroValor / custoTotalSemLucro) * 100 : null;
+  const markupPercent = precoAdotado !== null && custoTotalSemLucro > 0 ? (lucroValor / custoTotalSemLucro) * 100 : null;
 
-  const valorMensal = precoMinimo === null ? null : precoMinimo / meses;
+  const valorMensal = precoAdotado === null ? null : precoAdotado / meses;
   const valorAnual = valorMensal === null ? null : valorMensal * 12;
-  const valorPorUnidade = precoMinimo === null || !f.quantidadeUnidades ? null : precoMinimo / f.quantidadeUnidades;
+  const valorPorUnidade = precoAdotado === null || !f.quantidadeUnidades ? null : precoAdotado / f.quantidadeUnidades;
 
   /** Investimento inicial = aquisição de equipamentos + veículos + capital de giro + outros investimentos declarados. */
   const investimentoInicial = equipamentos.custoAquisicao + veiculosDepreciacao.custoAquisicao + capitalGiroNecessario + (cg.outrosInvestimentosIniciais ?? 0);
-  const roiTotalPercent = precoMinimo !== null && investimentoInicial > 0 ? (lucroValor / investimentoInicial) * 100 : null;
+  const roiTotalPercent = precoAdotado !== null && investimentoInicial > 0 ? (lucroValor / investimentoInicial) * 100 : null;
   const roiAnualPercent = roiTotalPercent === null ? null : roiTotalPercent / (meses / 12);
-  const paybackMeses = precoMinimo !== null && lucroValor > 0 ? investimentoInicial / (lucroValor / meses) : null;
+  const paybackMeses = precoAdotado !== null && lucroValor > 0 ? investimentoInicial / (lucroValor / meses) : null;
 
   const dre =
-    precoMinimo === null
+    precoAdotado === null
       ? []
       : [
-          { label: 'Faturamento (preço total)', valor: precoMinimo },
+          { label: 'Faturamento (preço total)', valor: precoAdotado },
           { label: '(-) Tributos', valor: -tributosValor },
           { label: '(-) Mão de obra', valor: -maoDeObraTotal },
           { label: '(-) Materiais', valor: -materiaisTotal },
@@ -182,7 +198,7 @@ export function calcularResultado(f: RascunhoFormacaoPreco): ResultadoFormacaoPr
           { label: '(-) Custo financeiro', valor: -custoFinanceiroValor },
           { label: '(-) Custos indiretos (administração)', valor: -custosIndiretosValor },
           { label: '(=) Lucro', valor: lucroValor },
-        ].map((l) => ({ ...l, percentualDaReceita: precoMinimo > 0 ? (l.valor / precoMinimo) * 100 : 0 }));
+        ].map((l) => ({ ...l, percentualDaReceita: precoAdotado > 0 ? (l.valor / precoAdotado) * 100 : 0 }));
 
   /**
    * Se não houver preço-teto do edital informado, mas houver uma receita mensal já
@@ -235,6 +251,8 @@ export function calcularResultado(f: RascunhoFormacaoPreco): ResultadoFormacaoPr
     custosIndiretosValor,
     lucroValor,
     totalCustosMaisLucro,
+    contratoFechado,
+    precoAdotado,
     tributosValor,
     tributosSobreCustoValor,
     tributosSobreReceitaValor,
