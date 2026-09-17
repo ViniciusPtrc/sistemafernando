@@ -15,7 +15,7 @@ import { LinhaTributoTable } from '@/components/formacaoPreco/LinhaTributoTable'
 import { PercentField } from '@/components/formacaoPreco/PercentField';
 import { ResumoResultado } from '@/components/formacaoPreco/ResumoResultado';
 import { CapitalRiscoInvestimento } from '@/components/formacaoPreco/CapitalRiscoInvestimento';
-import { SimulacaoReajuste } from '@/components/formacaoPreco/SimulacaoReajuste';
+import { SimulacaoPlurianual } from '@/components/formacaoPreco/SimulacaoPlurianual';
 import { FluxoCaixaProjetado } from '@/components/formacaoPreco/FluxoCaixaProjetado';
 import { PainelCenarios } from '@/components/formacaoPreco/PainelCenarios';
 import { MatrizSensibilidade } from '@/components/formacaoPreco/MatrizSensibilidade';
@@ -588,7 +588,7 @@ export default function FormacaoPrecoDetalhePage() {
 
       {aba === 'simulacoes' && (
         <div className="flex flex-col gap-6">
-          <SimulacaoReajuste rascunho={rascunho} resultado={resultado} />
+          <SimulacaoPlurianual rascunho={rascunho} />
           <FluxoCaixaProjetado rascunho={rascunho} resultado={resultado} />
           <PainelCenarios rascunho={rascunho} />
           <MatrizSensibilidade rascunho={rascunho} />

@@ -2,44 +2,11 @@ import { calcularResultado } from './formacaoPrecoCalculo';
 import type { LinhaCusto, RascunhoFormacaoPreco, ResultadoFormacaoPreco } from '@/types';
 
 /**
- * Simulações derivadas do resultado já calculado (reajuste, fluxo de caixa,
- * cenários, sensibilidade, validações). Tudo aqui é 100% cliente — não persiste
- * no backend, é só uma lente adicional sobre os mesmos dados da simulação.
+ * Simulações derivadas do resultado já calculado (fluxo de caixa, cenários,
+ * sensibilidade, validações). Tudo aqui é 100% cliente — não persiste no backend,
+ * é só uma lente adicional sobre os mesmos dados da simulação. A simulação
+ * plurianual (reajustes ano a ano) vive à parte, em `formacaoPrecoProjecaoAnual.ts`.
  */
-
-/* ------------------------------- Reajuste anual ------------------------------- */
-
-export interface AnoReajuste {
-  ano: number;
-  maoDeObraTotal: number;
-  precoMinimo: number | null;
-  variacaoPercentSobreAno1: number;
-}
-
-/**
- * Reajuste aplicado só sobre a mão de obra (igual à planilha oficial: o salário-base
- * sobe pelo dissídio da categoria, os demais custos têm dinâmica própria e não são
- * reajustados automaticamente aqui). Os outros custos ficam constantes ano a ano.
- */
-export function simularReajuste(f: RascunhoFormacaoPreco, resultado: ResultadoFormacaoPreco, percentAnual: number, anos = 3): AnoReajuste[] {
-  const k = f.custosIndiretosPercent + f.lucroPercent + f.tributosSobreCustoPercent + f.tributosSobreReceitaPercent;
-  const maoDeObraBase = resultado.maoDeObra.total;
-  const custosSemMaoDeObra = resultado.totalCustosComContingencia - maoDeObraBase;
-
-  const linhas: AnoReajuste[] = [];
-  for (let ano = 1; ano <= anos; ano++) {
-    const maoDeObraTotal = maoDeObraBase * (1 + percentAnual) ** (ano - 1);
-    const custosComReajuste = maoDeObraTotal + custosSemMaoDeObra;
-    const precoMinimo = k < 1 ? custosComReajuste / (1 - k) : null;
-    linhas.push({
-      ano,
-      maoDeObraTotal,
-      precoMinimo,
-      variacaoPercentSobreAno1: resultado.precoMinimo ? ((precoMinimo ?? 0) / resultado.precoMinimo - 1) * 100 : 0,
-    });
-  }
-  return linhas;
-}
 
 /* ------------------------------- Fluxo de caixa ------------------------------- */
 
