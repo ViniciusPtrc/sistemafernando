@@ -109,12 +109,16 @@ function sumFuel(items: FuelItem[] | undefined): number {
   return (items ?? []).reduce((sum, i) => sum + Math.round((i.quantity * i.kmPerYear * i.pricePerLiterCents) / (i.kmPerLiter || 1)), 0);
 }
 
+/** Cada adicional é uma linha em R$ separada sobre o subtotal, somada ao final — igual à planilha-modelo do DFP. */
 function computeLaborBlock(block: LaborBlock | undefined, dailyFullTimeHours: number) {
   const b = block ?? { items: [], payrollChargesPercent: 0, overtimePercent: 0, hazardPayPercent: 0, otherAllowancesPercent: 0 };
   const subtotalCents = sumLaborItems(b.items, dailyFullTimeHours);
-  const percentTotal = (b.payrollChargesPercent ?? 0) + (b.overtimePercent ?? 0) + (b.hazardPayPercent ?? 0) + (b.otherAllowancesPercent ?? 0);
-  const totalCents = Math.round(subtotalCents * (1 + percentTotal));
-  return { subtotalCents, totalCents };
+  const payrollChargesValueCents = Math.round(subtotalCents * (b.payrollChargesPercent ?? 0));
+  const overtimeValueCents = Math.round(subtotalCents * (b.overtimePercent ?? 0));
+  const hazardPayValueCents = Math.round(subtotalCents * (b.hazardPayPercent ?? 0));
+  const otherAllowancesValueCents = Math.round(subtotalCents * (b.otherAllowancesPercent ?? 0));
+  const totalCents = subtotalCents + payrollChargesValueCents + overtimeValueCents + hazardPayValueCents + otherAllowancesValueCents;
+  return { subtotalCents, payrollChargesValueCents, overtimeValueCents, hazardPayValueCents, otherAllowancesValueCents, totalCents };
 }
 
 /**

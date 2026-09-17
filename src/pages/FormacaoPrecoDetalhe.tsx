@@ -213,13 +213,33 @@ export default function FormacaoPrecoDetalhePage() {
             jornadaIntegralHorasDia={rascunho.jornadaIntegralHorasDia}
           />
           <div className="grid grid-cols-2 gap-3 border-t border-graphite-100 pt-4 sm:grid-cols-4">
-            <PercentField label="Encargos sociais" value={rascunho.maoDeObraDireta.encargosSociaisPercent} onChange={(v) => atualizarMaoDeObra('maoDeObraDireta', { encargosSociaisPercent: v })} />
-            <PercentField label="Horas extras" value={rascunho.maoDeObraDireta.horaExtraPercent} onChange={(v) => atualizarMaoDeObra('maoDeObraDireta', { horaExtraPercent: v })} />
-            <PercentField label="Periculosidade" value={rascunho.maoDeObraDireta.periculosidadePercent} onChange={(v) => atualizarMaoDeObra('maoDeObraDireta', { periculosidadePercent: v })} />
-            <PercentField label="Outros adicionais" value={rascunho.maoDeObraDireta.outrosAdicionaisPercent} onChange={(v) => atualizarMaoDeObra('maoDeObraDireta', { outrosAdicionaisPercent: v })} />
+            <PercentField
+              label="Encargos sociais"
+              value={rascunho.maoDeObraDireta.encargosSociaisPercent}
+              onChange={(v) => atualizarMaoDeObra('maoDeObraDireta', { encargosSociaisPercent: v })}
+              valorCalculado={resultado.maoDeObra.direta.encargosSociaisValor}
+            />
+            <PercentField
+              label="Horas extras"
+              value={rascunho.maoDeObraDireta.horaExtraPercent}
+              onChange={(v) => atualizarMaoDeObra('maoDeObraDireta', { horaExtraPercent: v })}
+              valorCalculado={resultado.maoDeObra.direta.horaExtraValor}
+            />
+            <PercentField
+              label="Periculosidade"
+              value={rascunho.maoDeObraDireta.periculosidadePercent}
+              onChange={(v) => atualizarMaoDeObra('maoDeObraDireta', { periculosidadePercent: v })}
+              valorCalculado={resultado.maoDeObra.direta.periculosidadeValor}
+            />
+            <PercentField
+              label="Outros adicionais"
+              value={rascunho.maoDeObraDireta.outrosAdicionaisPercent}
+              onChange={(v) => atualizarMaoDeObra('maoDeObraDireta', { outrosAdicionaisPercent: v })}
+              valorCalculado={resultado.maoDeObra.direta.outrosAdicionaisValor}
+            />
           </div>
           <p className="text-right text-sm text-graphite-600">
-            Total mão de obra direta: <strong className="text-graphite-900">{formatCurrency(resultado.maoDeObra.direta.total)}</strong>
+            Subtotal (I): {formatCurrency(resultado.maoDeObra.direta.subtotal)} · Total mão de obra direta: <strong className="text-graphite-900">{formatCurrency(resultado.maoDeObra.direta.total)}</strong>
           </p>
         </CardContent>
       </Card>
@@ -233,13 +253,33 @@ export default function FormacaoPrecoDetalhePage() {
             jornadaIntegralHorasDia={rascunho.jornadaIntegralHorasDia}
           />
           <div className="grid grid-cols-2 gap-3 border-t border-graphite-100 pt-4 sm:grid-cols-4">
-            <PercentField label="Encargos sociais" value={rascunho.maoDeObraIndireta.encargosSociaisPercent} onChange={(v) => atualizarMaoDeObra('maoDeObraIndireta', { encargosSociaisPercent: v })} />
-            <PercentField label="Horas extras" value={rascunho.maoDeObraIndireta.horaExtraPercent} onChange={(v) => atualizarMaoDeObra('maoDeObraIndireta', { horaExtraPercent: v })} />
-            <PercentField label="Periculosidade" value={rascunho.maoDeObraIndireta.periculosidadePercent} onChange={(v) => atualizarMaoDeObra('maoDeObraIndireta', { periculosidadePercent: v })} />
-            <PercentField label="Outros adicionais" value={rascunho.maoDeObraIndireta.outrosAdicionaisPercent} onChange={(v) => atualizarMaoDeObra('maoDeObraIndireta', { outrosAdicionaisPercent: v })} />
+            <PercentField
+              label="Encargos sociais"
+              value={rascunho.maoDeObraIndireta.encargosSociaisPercent}
+              onChange={(v) => atualizarMaoDeObra('maoDeObraIndireta', { encargosSociaisPercent: v })}
+              valorCalculado={resultado.maoDeObra.indireta.encargosSociaisValor}
+            />
+            <PercentField
+              label="Horas extras"
+              value={rascunho.maoDeObraIndireta.horaExtraPercent}
+              onChange={(v) => atualizarMaoDeObra('maoDeObraIndireta', { horaExtraPercent: v })}
+              valorCalculado={resultado.maoDeObra.indireta.horaExtraValor}
+            />
+            <PercentField
+              label="Periculosidade"
+              value={rascunho.maoDeObraIndireta.periculosidadePercent}
+              onChange={(v) => atualizarMaoDeObra('maoDeObraIndireta', { periculosidadePercent: v })}
+              valorCalculado={resultado.maoDeObra.indireta.periculosidadeValor}
+            />
+            <PercentField
+              label="Outros adicionais"
+              value={rascunho.maoDeObraIndireta.outrosAdicionaisPercent}
+              onChange={(v) => atualizarMaoDeObra('maoDeObraIndireta', { outrosAdicionaisPercent: v })}
+              valorCalculado={resultado.maoDeObra.indireta.outrosAdicionaisValor}
+            />
           </div>
           <p className="text-right text-sm text-graphite-600">
-            Total mão de obra indireta: <strong className="text-graphite-900">{formatCurrency(resultado.maoDeObra.indireta.total)}</strong>
+            Subtotal (I): {formatCurrency(resultado.maoDeObra.indireta.subtotal)} · Total mão de obra indireta: <strong className="text-graphite-900">{formatCurrency(resultado.maoDeObra.indireta.total)}</strong>
           </p>
         </CardContent>
       </Card>

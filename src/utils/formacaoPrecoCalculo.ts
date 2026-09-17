@@ -54,10 +54,15 @@ function somaLinhaMaoDeObra(itens: LinhaMaoDeObra[], jornadaIntegralHorasDia: nu
   return itens.reduce((s, i) => s + i.quantidade * i.meses * i.salarioMensal * (i.dedicacaoHorasDia / jornadaIntegralHorasDia), 0);
 }
 
+/** Cada adicional é uma linha em R$ separada sobre o subtotal, somada ao final — igual à planilha-modelo do DFP. */
 function calcBlocoMaoDeObra(b: BlocoMaoDeObra, jornadaIntegralHorasDia: number): ResultadoBlocoMaoDeObra {
   const subtotal = somaLinhaMaoDeObra(b.itens, jornadaIntegralHorasDia);
-  const percentTotal = b.encargosSociaisPercent + b.horaExtraPercent + b.periculosidadePercent + b.outrosAdicionaisPercent;
-  return { subtotal, total: subtotal * (1 + percentTotal) };
+  const encargosSociaisValor = subtotal * b.encargosSociaisPercent;
+  const horaExtraValor = subtotal * b.horaExtraPercent;
+  const periculosidadeValor = subtotal * b.periculosidadePercent;
+  const outrosAdicionaisValor = subtotal * b.outrosAdicionaisPercent;
+  const total = subtotal + encargosSociaisValor + horaExtraValor + periculosidadeValor + outrosAdicionaisValor;
+  return { subtotal, encargosSociaisValor, horaExtraValor, periculosidadeValor, outrosAdicionaisValor, total };
 }
 
 /**

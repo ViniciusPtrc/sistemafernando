@@ -803,6 +803,10 @@ interface WorkingCapitalDTO {
 
 interface ResultadoBlocoMaoDeObraDTO {
   subtotalCents: number;
+  payrollChargesValueCents: number;
+  overtimeValueCents: number;
+  hazardPayValueCents: number;
+  otherAllowancesValueCents: number;
   totalCents: number;
 }
 
@@ -955,7 +959,14 @@ function mapCapitalGiro(dto: WorkingCapitalDTO): CapitalGiro {
 }
 
 function mapResultadoBlocoMaoDeObra(dto: ResultadoBlocoMaoDeObraDTO) {
-  return { subtotal: centsToReais(dto.subtotalCents), total: centsToReais(dto.totalCents) };
+  return {
+    subtotal: centsToReais(dto.subtotalCents),
+    encargosSociaisValor: centsToReais(dto.payrollChargesValueCents),
+    horaExtraValor: centsToReais(dto.overtimeValueCents),
+    periculosidadeValor: centsToReais(dto.hazardPayValueCents),
+    outrosAdicionaisValor: centsToReais(dto.otherAllowancesValueCents),
+    total: centsToReais(dto.totalCents),
+  };
 }
 
 function mapResultadoBlocoAtivo(dto: ResultadoBlocoAtivoDTO) {

@@ -82,6 +82,11 @@ export interface BlocoOutrosCustosMaoDeObra {
 
 export interface ResultadoBlocoMaoDeObra {
   subtotal: number;
+  /** Valor em R$ de cada adicional sobre o subtotal — mesma decomposição em linhas da planilha-modelo do DFP. */
+  encargosSociaisValor: number;
+  horaExtraValor: number;
+  periculosidadeValor: number;
+  outrosAdicionaisValor: number;
   total: number;
 }
 
