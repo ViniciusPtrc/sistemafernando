@@ -182,6 +182,8 @@ export function calcularResultado(f: RascunhoFormacaoPreco): ResultadoFormacaoPr
 
   const valorMensal = precoAdotado === null ? null : precoAdotado / mesesReferenciaPreco;
   const valorAnual = valorMensal === null ? null : valorMensal * 12;
+  /** Valor mensal × duração real do contrato (`mesesContrato`) — total do contrato inteiro, independente do DRE (que é sempre do ano 1). */
+  const valorGlobalContrato = valorMensal === null ? null : valorMensal * meses;
   const valorPorUnidade = precoAdotado === null || !f.quantidadeUnidades ? null : precoAdotado / f.quantidadeUnidades;
 
   /** Investimento inicial = aquisição de equipamentos + veículos + capital de giro + outros investimentos declarados. */
@@ -267,6 +269,7 @@ export function calcularResultado(f: RascunhoFormacaoPreco): ResultadoFormacaoPr
     markupPercent,
     valorMensal,
     valorAnual,
+    valorGlobalContrato,
     valorPorUnidade,
     contingenciaValor,
     custoFinanceiroValor,

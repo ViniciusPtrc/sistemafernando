@@ -861,6 +861,7 @@ interface ResultadoDTO {
   markupPercent: number | null;
   valorMensalCents: number | null;
   valorAnualCents: number | null;
+  valorGlobalContratoCents: number | null;
   valorPorUnidadeCents: number | null;
   contingenciaValorCents: number;
   custoFinanceiroValorCents: number;
@@ -1073,6 +1074,7 @@ export function mapPriceFormation(dto: PriceFormationDTO): FormacaoPreco {
       markupPercent: dto.resultado.markupPercent,
       valorMensal: dto.resultado.valorMensalCents == null ? null : centsToReais(dto.resultado.valorMensalCents),
       valorAnual: dto.resultado.valorAnualCents == null ? null : centsToReais(dto.resultado.valorAnualCents),
+      valorGlobalContrato: dto.resultado.valorGlobalContratoCents == null ? null : centsToReais(dto.resultado.valorGlobalContratoCents),
       valorPorUnidade: dto.resultado.valorPorUnidadeCents == null ? null : centsToReais(dto.resultado.valorPorUnidadeCents),
       contingenciaValor: centsToReais(dto.resultado.contingenciaValorCents),
       custoFinanceiroValor: centsToReais(dto.resultado.custoFinanceiroValorCents),

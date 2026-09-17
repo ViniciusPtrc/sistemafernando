@@ -201,6 +201,9 @@ export default function FormacaoPrecoDetalhePage() {
           <label className="flex flex-col gap-1 text-xs font-medium text-graphite-500">
             Duração do contrato (meses)
             <Input type="number" min={1} value={rascunho.mesesContrato} onChange={(e) => atualizar('mesesContrato', Number(e.target.value) || 12)} />
+            <span className="text-[11px] font-normal text-graphite-400">
+              Só usada para o "Valor total do contrato" (valor mensal × esses meses) — os custos e o DRE continuam sempre por ano.
+            </span>
           </label>
           <label className="flex flex-col gap-1 text-xs font-medium text-graphite-500">
             Jornada integral de referência (h/dia)

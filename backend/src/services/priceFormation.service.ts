@@ -261,6 +261,8 @@ export function computeResultado(doc: any) {
 
   const monthlyValueCents = adoptedPriceCents === null ? null : Math.round(adoptedPriceCents / monthsForPriceConversion);
   const annualValueCents = monthlyValueCents === null ? null : monthlyValueCents * 12;
+  /** Valor mensal × duração real do contrato (`contractMonths`) — total do contrato inteiro, independente do DRE (que é sempre do ano 1). */
+  const globalContractValueCents = monthlyValueCents === null ? null : monthlyValueCents * contractMonths;
   const unitCount = doc.unitCount ?? null;
   const valuePerUnitCents = adoptedPriceCents === null || !unitCount ? null : Math.round(adoptedPriceCents / unitCount);
 
@@ -352,6 +354,7 @@ export function computeResultado(doc: any) {
     markupPercent,
     valorMensalCents: monthlyValueCents,
     valorAnualCents: annualValueCents,
+    valorGlobalContratoCents: globalContractValueCents,
     valorPorUnidadeCents: valuePerUnitCents,
     capitalGiroNecessarioCents: workingCapitalNeededCents,
     investimentoInicialCents: initialInvestmentCents,

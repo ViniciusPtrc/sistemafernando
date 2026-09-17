@@ -61,7 +61,11 @@ export function ResumoResultado({ resultado, lucroPercentAlvo }: ResumoResultado
           titulo="Valor mensal do contrato"
           valor={resultado.valorMensal === null ? 'N/A' : formatCurrency(resultado.valorMensal)}
           icone={<Wallet className="h-4 w-4" />}
-          linhaDetalhe={resultado.valorAnual === null ? undefined : `${formatCurrency(resultado.valorAnual)}/ano`}
+          linhaDetalhe={
+            resultado.valorAnual === null
+              ? undefined
+              : `${formatCurrency(resultado.valorAnual)}/ano · ${resultado.valorGlobalContrato === null ? 'N/A' : formatCurrency(resultado.valorGlobalContrato)} total`
+          }
         />
         <FinancialCard
           titulo="Valor por unidade/equipamento"

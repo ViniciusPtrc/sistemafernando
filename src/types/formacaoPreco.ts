@@ -171,6 +171,8 @@ export interface ResultadoFormacaoPreco {
   valorMensal: number | null;
   /** Valor anual do contrato = valor mensal × 12. */
   valorAnual: number | null;
+  /** Valor mensal × duração real do contrato (`mesesContrato`) — total do contrato inteiro, independente do DRE (que é sempre do ano 1). */
+  valorGlobalContrato: number | null;
   /** Preço adotado ÷ quantidade de unidades/equipamentos, quando informada. */
   valorPorUnidade: number | null;
   /** Valor do buffer de contingência (% sobre custos diretos), aplicado antes do gross-up. */

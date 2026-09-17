@@ -127,6 +127,7 @@ export function gerarPdfFormacaoPreco(f: RascunhoFormacaoPreco, resultado: Resul
       [resultado.contratoFechado ? 'Preço do contrato (fechado)' : 'Preço mínimo necessário', resultado.precoAdotado === null ? 'N/A' : formatCurrency(resultado.precoAdotado)],
       ['Valor mensal', resultado.valorMensal === null ? 'N/A' : formatCurrency(resultado.valorMensal)],
       ['Valor anual', resultado.valorAnual === null ? 'N/A' : formatCurrency(resultado.valorAnual)],
+      [`Valor total do contrato (${f.mesesContrato} meses)`, resultado.valorGlobalContrato === null ? 'N/A' : formatCurrency(resultado.valorGlobalContrato)],
       [resultado.contratoFechado ? 'Margem real' : 'Margem-alvo', formatPercent(base > 0 ? (resultado.lucroValor / base) * 100 : 0)],
       ['Investimento inicial', formatCurrency(resultado.investimentoInicial)],
       ['Capital de giro necessário', formatCurrency(resultado.capitalGiroNecessario)],
