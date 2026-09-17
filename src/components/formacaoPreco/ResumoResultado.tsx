@@ -25,10 +25,22 @@ export function ResumoResultado({ resultado, lucroPercentAlvo }: ResumoResultado
         <FinancialCard titulo="Total de custos diretos" valor={formatCurrency(resultado.totalCustosDiretos)} icone={<TrendingDown className="h-4 w-4" />} tom="negativo" />
         <FinancialCard
           titulo={contratoFechado ? 'Preço do contrato (fechado)' : 'Preço mínimo necessário'}
-          valor={resultado.precoAdotado === null ? 'N/A' : formatCurrency(resultado.precoAdotado)}
+          valor={
+            contratoFechado
+              ? resultado.valorGlobalContrato === null
+                ? 'N/A'
+                : formatCurrency(resultado.valorGlobalContrato)
+              : resultado.precoAdotado === null
+                ? 'N/A'
+                : formatCurrency(resultado.precoAdotado)
+          }
           icone={<Wallet className="h-4 w-4" />}
           tom="destaque"
-          linhaDetalhe={contratoFechado ? 'já negociado — não é uma meta' : 'p/ bater a margem-alvo'}
+          linhaDetalhe={
+            contratoFechado
+              ? `já negociado — valor total do contrato (${resultado.valorMensal === null ? 'N/A' : formatCurrency(resultado.valorMensal)}/mês)`
+              : 'p/ bater a margem-alvo'
+          }
         />
         <FinancialCard
           titulo={contratoFechado ? 'Margem real' : 'Margem-alvo'}

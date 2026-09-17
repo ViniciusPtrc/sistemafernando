@@ -116,7 +116,15 @@ export default function FormacaoPrecoPage() {
                     <div className="mt-2 flex flex-col gap-0.5 text-sm">
                       <span className="text-graphite-500">
                         {f.resultado.contratoFechado ? 'Preço do contrato' : 'Preço mínimo'}:{' '}
-                        <strong className="text-graphite-900">{f.resultado.precoAdotado === null ? 'N/A' : formatCurrency(f.resultado.precoAdotado)}</strong>
+                        <strong className="text-graphite-900">
+                          {f.resultado.contratoFechado
+                            ? f.resultado.valorGlobalContrato === null
+                              ? 'N/A'
+                              : formatCurrency(f.resultado.valorGlobalContrato)
+                            : f.resultado.precoAdotado === null
+                              ? 'N/A'
+                              : formatCurrency(f.resultado.precoAdotado)}
+                        </strong>
                       </span>
                       <span className="text-graphite-500">
                         {f.resultado.contratoFechado

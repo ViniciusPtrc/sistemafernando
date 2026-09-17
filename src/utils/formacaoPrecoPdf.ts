@@ -124,11 +124,19 @@ export function gerarPdfFormacaoPreco(f: RascunhoFormacaoPreco, resultado: Resul
     headStyles: { fillColor: [40, 44, 52] },
     columnStyles: { 1: { halign: 'right', cellWidth: 120 } },
     body: [
-      [resultado.contratoFechado ? 'Preço do contrato (fechado)' : 'Preço mínimo necessário', resultado.precoAdotado === null ? 'N/A' : formatCurrency(resultado.precoAdotado)],
+      [
+        resultado.contratoFechado ? `Preço do contrato — total (${f.mesesContrato} meses)` : 'Preço mínimo necessário',
+        resultado.contratoFechado
+          ? resultado.valorGlobalContrato === null
+            ? 'N/A'
+            : formatCurrency(resultado.valorGlobalContrato)
+          : resultado.precoAdotado === null
+            ? 'N/A'
+            : formatCurrency(resultado.precoAdotado),
+      ],
       ['Valor mensal', resultado.valorMensal === null ? 'N/A' : formatCurrency(resultado.valorMensal)],
-      ['Valor anual', resultado.valorAnual === null ? 'N/A' : formatCurrency(resultado.valorAnual)],
-      [`Valor total do contrato (${f.mesesContrato} meses)`, resultado.valorGlobalContrato === null ? 'N/A' : formatCurrency(resultado.valorGlobalContrato)],
-      [resultado.contratoFechado ? 'Margem real' : 'Margem-alvo', formatPercent(base > 0 ? (resultado.lucroValor / base) * 100 : 0)],
+      ['Valor anual (base do DRE — ano 1)', resultado.valorAnual === null ? 'N/A' : formatCurrency(resultado.valorAnual)],
+      [resultado.contratoFechado ? 'Margem real (ano 1)' : 'Margem-alvo', formatPercent(base > 0 ? (resultado.lucroValor / base) * 100 : 0)],
       ['Investimento inicial', formatCurrency(resultado.investimentoInicial)],
       ['Capital de giro necessário', formatCurrency(resultado.capitalGiroNecessario)],
       ['ROI anualizado', resultado.roiAnualPercent === null ? 'N/A' : formatPercent(resultado.roiAnualPercent)],
