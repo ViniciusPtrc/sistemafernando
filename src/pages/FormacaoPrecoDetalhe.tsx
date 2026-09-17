@@ -20,6 +20,7 @@ import { FluxoCaixaProjetado } from '@/components/formacaoPreco/FluxoCaixaProjet
 import { PainelCenarios } from '@/components/formacaoPreco/PainelCenarios';
 import { MatrizSensibilidade } from '@/components/formacaoPreco/MatrizSensibilidade';
 import { PainelValidacoes } from '@/components/formacaoPreco/PainelValidacoes';
+import { ResumoBlocosCustos } from '@/components/formacaoPreco/ResumoBlocosCustos';
 import { useCompany } from '@/hooks/useCompany';
 import { useToast } from '@/hooks/useToast';
 import { getFormacaoPreco, criarFormacaoPreco, atualizarFormacaoPreco } from '@/services/formacaoPrecoService';
@@ -461,6 +462,8 @@ export default function FormacaoPrecoDetalhePage() {
           </p>
         </CardContent>
       </Card>
+
+      <ResumoBlocosCustos resultado={resultado} />
 
       <Card>
         <CardHeader><CardTitle>2. Custos indiretos, lucro e tributos</CardTitle></CardHeader>
