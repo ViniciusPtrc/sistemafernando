@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileDown } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -26,6 +26,7 @@ import { useCompany } from '@/hooks/useCompany';
 import { useToast } from '@/hooks/useToast';
 import { getFormacaoPreco, criarFormacaoPreco, atualizarFormacaoPreco } from '@/services/formacaoPrecoService';
 import { calcularResultado, formacaoPrecoVazia } from '@/utils/formacaoPrecoCalculo';
+import { gerarPdfFormacaoPreco } from '@/utils/formacaoPrecoPdf';
 import { formatCurrency } from '@/utils/format';
 import type { BlocoMaoDeObra, CapitalGiro, RascunhoFormacaoPreco, RegimeTributario } from '@/types';
 
@@ -114,6 +115,16 @@ export default function FormacaoPrecoDetalhePage() {
     }
   };
 
+  const baixarPdf = () => {
+    if (!rascunho || !resultado) return;
+    try {
+      const nomeEmpresa = companies.find((c) => c.id === rascunho.companyId)?.name;
+      gerarPdfFormacaoPreco(rascunho, resultado, { nomeEmpresa });
+    } catch (e) {
+      notificar({ titulo: 'Não foi possível gerar o PDF', descricao: e instanceof Error ? e.message : 'Tente novamente.', variante: 'erro' });
+    }
+  };
+
   if (erro) return <ErrorState onTentarNovamente={() => setCarregando((c) => !c)} />;
   if (carregando || !rascunho || !resultado) {
     return <div className="h-96 animate-pulse rounded-xl bg-graphite-100" />;
@@ -128,7 +139,14 @@ export default function FormacaoPrecoDetalhePage() {
         <PageHeader
           titulo={novo ? 'Nova simulação' : rascunho.nome || 'Simulação'}
           subtitulo="Formação de preço: custos diretos + indiretos + lucro + tributos."
-          acoes={<Button onClick={salvar} disabled={salvando}>{salvando ? 'Salvando…' : 'Salvar'}</Button>}
+          acoes={
+            <div className="flex items-center gap-2">
+              <Button variante="secundario" icone={<FileDown className="h-4 w-4" />} onClick={baixarPdf}>
+                Baixar PDF
+              </Button>
+              <Button onClick={salvar} disabled={salvando}>{salvando ? 'Salvando…' : 'Salvar'}</Button>
+            </div>
+          }
         />
       </div>
 
