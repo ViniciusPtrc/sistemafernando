@@ -142,9 +142,16 @@ export interface ResultadoFormacaoPreco {
   equipamentos: ResultadoBlocoAtivo;
   veiculos: { depreciacao: ResultadoBlocoAtivo; manutencao: number; combustivel: number; total: number };
   totalCustosDiretos: number;
+  /** Total dos Custos Diretos + Custos Indiretos (linha "Total dos Custos" da planilha-modelo). */
+  totalCustos: number;
   custosIndiretosValor: number;
   lucroValor: number;
+  /** Total dos Custos + Lucro (linha da planilha-modelo, base para os tributos "sobre o custo"). */
+  totalCustosMaisLucro: number;
+  /** Tributos sobre o custo (ex.: Simples Nacional) + tributos sobre a receita (ISS+PIS+COFINS+CPRB…). */
   tributosValor: number;
+  tributosSobreCustoValor: number;
+  tributosSobreReceitaValor: number;
   /** Preço mínimo para bater a margem-alvo (lucroPercent). */
   precoMinimo: number | null;
   /** Preço em que o resultado econômico é zero (mesma fórmula, sem a parcela de lucro). */

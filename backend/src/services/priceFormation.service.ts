@@ -213,7 +213,13 @@ export function computeResultado(doc: any) {
   const minimumPriceCents = k < 1 ? Math.round(costsBaseForPriceCents / (1 - k)) : null;
   const indirectCostsValueCents = minimumPriceCents === null ? 0 : Math.round(indirectCostsPercent * minimumPriceCents);
   const profitValueCents = minimumPriceCents === null ? 0 : Math.round(profitPercent * minimumPriceCents);
-  const taxesValueCents = minimumPriceCents === null ? 0 : Math.round(taxesPercent * minimumPriceCents);
+  const costBasedTaxesValueCents = minimumPriceCents === null ? 0 : Math.round(costBasedTaxesPercent * minimumPriceCents);
+  const revenueBasedTaxesValueCents = minimumPriceCents === null ? 0 : Math.round(revenueBasedTaxesPercent * minimumPriceCents);
+  const taxesValueCents = costBasedTaxesValueCents + revenueBasedTaxesValueCents;
+
+  /** Linhas "Total dos Custos" e "Total dos Custos + Lucro" da planilha-modelo. */
+  const totalCostsCents = costsBaseForPriceCents + indirectCostsValueCents;
+  const totalCostsPlusProfitCents = totalCostsCents + profitValueCents;
 
   /** Mesma fórmula do preço mínimo, mas sem a parcela de lucro — preço em que o resultado econômico é zero. */
   const kBreakeven = indirectCostsPercent + taxesPercent;
@@ -302,9 +308,13 @@ export function computeResultado(doc: any) {
     contingenciaValorCents: contingencyValueCents,
     custoFinanceiroValorCents: financialCostCents,
     totalCustosComContingenciaCents: costsBaseForPriceCents,
+    totalCustosCents: totalCostsCents,
     custosIndiretosValorCents: indirectCostsValueCents,
     lucroValorCents: profitValueCents,
+    totalCustosMaisLucroCents: totalCostsPlusProfitCents,
     tributosValorCents: taxesValueCents,
+    tributosSobreCustoValorCents: costBasedTaxesValueCents,
+    tributosSobreReceitaValorCents: revenueBasedTaxesValueCents,
     precoMinimoCents: minimumPriceCents,
     precoEquilibrioCents: breakevenPriceCents,
     markupPercent,

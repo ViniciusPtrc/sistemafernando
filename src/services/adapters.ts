@@ -847,9 +847,13 @@ interface ResultadoDTO {
   equipamentos: ResultadoBlocoAtivoDTO;
   veiculos: { depreciacao: ResultadoBlocoAtivoDTO; manutencaoCents: number; combustivelCents: number; totalCents: number };
   totalCustosDiretosCents: number;
+  totalCustosCents: number;
   custosIndiretosValorCents: number;
   lucroValorCents: number;
+  totalCustosMaisLucroCents: number;
   tributosValorCents: number;
+  tributosSobreCustoValorCents: number;
+  tributosSobreReceitaValorCents: number;
   precoMinimoCents: number | null;
   precoEquilibrioCents: number | null;
   markupPercent: number | null;
@@ -1053,9 +1057,13 @@ export function mapPriceFormation(dto: PriceFormationDTO): FormacaoPreco {
         total: centsToReais(dto.resultado.veiculos.totalCents),
       },
       totalCustosDiretos: centsToReais(dto.resultado.totalCustosDiretosCents),
+      totalCustos: centsToReais(dto.resultado.totalCustosCents),
       custosIndiretosValor: centsToReais(dto.resultado.custosIndiretosValorCents),
       lucroValor: centsToReais(dto.resultado.lucroValorCents),
+      totalCustosMaisLucro: centsToReais(dto.resultado.totalCustosMaisLucroCents),
       tributosValor: centsToReais(dto.resultado.tributosValorCents),
+      tributosSobreCustoValor: centsToReais(dto.resultado.tributosSobreCustoValorCents),
+      tributosSobreReceitaValor: centsToReais(dto.resultado.tributosSobreReceitaValorCents),
       precoMinimo: dto.resultado.precoMinimoCents == null ? null : centsToReais(dto.resultado.precoMinimoCents),
       precoEquilibrio: dto.resultado.precoEquilibrioCents == null ? null : centsToReais(dto.resultado.precoEquilibrioCents),
       markupPercent: dto.resultado.markupPercent,

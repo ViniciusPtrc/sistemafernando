@@ -142,7 +142,13 @@ export function calcularResultado(f: RascunhoFormacaoPreco): ResultadoFormacaoPr
   const precoMinimo = k < 1 ? totalCustosComContingencia / (1 - k) : null;
   const custosIndiretosValor = precoMinimo === null ? 0 : f.custosIndiretosPercent * precoMinimo;
   const lucroValor = precoMinimo === null ? 0 : f.lucroPercent * precoMinimo;
-  const tributosValor = precoMinimo === null ? 0 : tributosPercent * precoMinimo;
+  const tributosSobreCustoValor = precoMinimo === null ? 0 : (f.tributosSobreCustoPercent ?? 0) * precoMinimo;
+  const tributosSobreReceitaValor = precoMinimo === null ? 0 : (f.tributosSobreReceitaPercent ?? 0) * precoMinimo;
+  const tributosValor = tributosSobreCustoValor + tributosSobreReceitaValor;
+
+  /** Linhas "Total dos Custos" e "Total dos Custos + Lucro" da planilha-modelo. */
+  const totalCustos = totalCustosComContingencia + custosIndiretosValor;
+  const totalCustosMaisLucro = totalCustos + lucroValor;
 
   /** Mesma fórmula do preço mínimo, mas sem a parcela de lucro — preço em que o resultado econômico é zero. */
   const kEquilibrio = f.custosIndiretosPercent + tributosPercent;
@@ -217,9 +223,13 @@ export function calcularResultado(f: RascunhoFormacaoPreco): ResultadoFormacaoPr
     equipamentos,
     veiculos: { depreciacao: veiculosDepreciacao, manutencao: veiculosManutencao, combustivel: veiculosCombustivel, total: veiculosTotal },
     totalCustosDiretos,
+    totalCustos,
     custosIndiretosValor,
     lucroValor,
+    totalCustosMaisLucro,
     tributosValor,
+    tributosSobreCustoValor,
+    tributosSobreReceitaValor,
     precoMinimo,
     precoEquilibrio,
     markupPercent,

@@ -21,6 +21,7 @@ import { PainelCenarios } from '@/components/formacaoPreco/PainelCenarios';
 import { MatrizSensibilidade } from '@/components/formacaoPreco/MatrizSensibilidade';
 import { PainelValidacoes } from '@/components/formacaoPreco/PainelValidacoes';
 import { ResumoBlocosCustos } from '@/components/formacaoPreco/ResumoBlocosCustos';
+import { BlocoIndiretosLucroTributos } from '@/components/formacaoPreco/BlocoIndiretosLucroTributos';
 import { useCompany } from '@/hooks/useCompany';
 import { useToast } from '@/hooks/useToast';
 import { getFormacaoPreco, criarFormacaoPreco, atualizarFormacaoPreco } from '@/services/formacaoPrecoService';
@@ -504,22 +505,17 @@ export default function FormacaoPrecoDetalhePage() {
           <p className="text-xs text-graphite-500">
             Percentuais aplicados sobre o <strong>preço final</strong> (não sobre o custo) — é assim que o preço mínimo é calculado "por dentro", igual ao DFP oficial.
           </p>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <PercentField label="Custos indiretos (administração)" value={rascunho.custosIndiretosPercent} onChange={(v) => atualizar('custosIndiretosPercent', v)} />
-            <PercentField label="Lucro-alvo" value={rascunho.lucroPercent} onChange={(v) => atualizar('lucroPercent', v)} />
-            <PercentField
-              label="Tributos sobre o custo"
-              value={rascunho.tributosSobreCustoPercent}
-              onChange={(v) => atualizar('tributosSobreCustoPercent', v)}
-              hint="ex.: Simples Nacional, quando aplicável"
-            />
-            <PercentField
-              label="Tributos sobre a receita"
-              value={rascunho.tributosSobreReceitaPercent}
-              onChange={(v) => atualizar('tributosSobreReceitaPercent', v)}
-              hint="ISS + PIS + COFINS + CPRB…"
-            />
-          </div>
+          <BlocoIndiretosLucroTributos
+            custosIndiretosPercent={rascunho.custosIndiretosPercent}
+            lucroPercent={rascunho.lucroPercent}
+            tributosSobreCustoPercent={rascunho.tributosSobreCustoPercent}
+            tributosSobreReceitaPercent={rascunho.tributosSobreReceitaPercent}
+            resultado={resultado}
+            onChangeCustosIndiretos={(v) => atualizar('custosIndiretosPercent', v)}
+            onChangeLucro={(v) => atualizar('lucroPercent', v)}
+            onChangeTributosSobreCusto={(v) => atualizar('tributosSobreCustoPercent', v)}
+            onChangeTributosSobreReceita={(v) => atualizar('tributosSobreReceitaPercent', v)}
+          />
         </CardContent>
       </Card>
 
