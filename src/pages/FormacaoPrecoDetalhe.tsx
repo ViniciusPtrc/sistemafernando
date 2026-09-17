@@ -567,7 +567,8 @@ export default function FormacaoPrecoDetalhePage() {
             />
             <span className="text-[11px] font-normal text-graphite-400">
               Reproduz a fórmula exata da planilha-modelo do DFP: o tributo sobre a receita é calculado sobre este valor × 12 (não sobre o preço mínimo acima), para
-              conferir se esta simulação bate com o "Total dos Serviços" já entregue ao órgão.
+              conferir se esta simulação bate com o "Total dos Serviços" já entregue ao órgão. Também alimenta automaticamente o painel "Vale a pena…" acima, com
+              o lucro e a margem reais com base neste valor fechado — a menos que você preencha um preço-teto do edital ali, que tem prioridade.
             </span>
           </label>
         </CardContent>

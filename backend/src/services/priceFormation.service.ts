@@ -255,7 +255,16 @@ export function computeResultado(doc: any) {
         { label: '(=) Lucro', valorCents: profitValueCents },
       ].map((l) => ({ ...l, percentualDaReceita: minimumPriceCents > 0 ? (l.valorCents / minimumPriceCents) * 100 : 0 }));
 
-  const referencePriceCents = doc.referencePriceCents ?? null;
+  const informedMonthlyRevenueCents: number | null = doc.informedMonthlyRevenueCents ?? null;
+
+  /**
+   * Se não houver preço-teto do edital informado, mas houver uma receita mensal já
+   * fechada/negociada, usa essa receita (anualizada) como preço de referência — assim
+   * o valor "fechado" também aparece no painel de viabilidade (lucro real, margem
+   * real, diferença), e não fica restrito só à conferência com o DFP oficial abaixo.
+   */
+  const referencePriceCents =
+    doc.referencePriceCents ?? (informedMonthlyRevenueCents !== null && informedMonthlyRevenueCents > 0 ? informedMonthlyRevenueCents * 12 : null);
   let comparacaoReferencia = null;
   if (referencePriceCents !== null && referencePriceCents > 0) {
     const lucroRealCents = Math.round(referencePriceCents * (1 - indirectCostsPercent - taxesPercent)) - costsBaseForPriceCents;
@@ -275,7 +284,6 @@ export function computeResultado(doc: any) {
    * — assim evita a circularidade que a própria planilha evita ao digitar esse valor em
    * vez de calculá-lo. Só aparece quando `informedMonthlyRevenueCents` é informado.
    */
-  const informedMonthlyRevenueCents: number | null = doc.informedMonthlyRevenueCents ?? null;
   let totalServicosDfpCents: number | null = null;
   let resultadoContratoInformadoCents: number | null = null;
   let informedAnnualRevenueCents: number | null = null;

@@ -184,15 +184,23 @@ export function calcularResultado(f: RascunhoFormacaoPreco): ResultadoFormacaoPr
           { label: '(=) Lucro', valor: lucroValor },
         ].map((l) => ({ ...l, percentualDaReceita: precoMinimo > 0 ? (l.valor / precoMinimo) * 100 : 0 }));
 
+  /**
+   * Se não houver preço-teto do edital informado, mas houver uma receita mensal já
+   * fechada/negociada, usa essa receita (anualizada) como preço de referência — assim
+   * o valor "fechado" também aparece no painel de viabilidade (lucro real, margem
+   * real, diferença), e não fica restrito só à conferência com o DFP oficial abaixo.
+   */
+  const precoReferenciaEfetivo = f.precoReferencia ?? (f.receitaMensalInformada != null && f.receitaMensalInformada > 0 ? f.receitaMensalInformada * 12 : null);
+
   let comparacaoReferencia: ResultadoFormacaoPreco['comparacaoReferencia'] = null;
-  if (f.precoReferencia != null && f.precoReferencia > 0) {
-    const lucroReal = f.precoReferencia * (1 - f.custosIndiretosPercent - tributosPercent) - totalCustosComContingencia;
+  if (precoReferenciaEfetivo != null && precoReferenciaEfetivo > 0) {
+    const lucroReal = precoReferenciaEfetivo * (1 - f.custosIndiretosPercent - tributosPercent) - totalCustosComContingencia;
     comparacaoReferencia = {
-      precoReferencia: f.precoReferencia,
+      precoReferencia: precoReferenciaEfetivo,
       lucroReal,
-      margemRealPct: (lucroReal / f.precoReferencia) * 100,
-      viavel: precoMinimo !== null && f.precoReferencia >= precoMinimo,
-      diferenca: precoMinimo === null ? null : f.precoReferencia - precoMinimo,
+      margemRealPct: (lucroReal / precoReferenciaEfetivo) * 100,
+      viavel: precoMinimo !== null && precoReferenciaEfetivo >= precoMinimo,
+      diferenca: precoMinimo === null ? null : precoReferenciaEfetivo - precoMinimo,
     };
   }
 
