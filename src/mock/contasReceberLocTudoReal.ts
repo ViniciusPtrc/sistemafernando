@@ -1,9 +1,16 @@
-import type { ContaReceber } from '@/types';
-import contasReceberLocTudoJson from './data/contasReceberLocTudo.json';
-import { clientesLocTudo } from './clientesLocTudo';
+import type { Cliente, ContaReceber } from '@/types';
 import { normalizarContaReceber, type RegistroContaReceberOrigem } from '@/utils/normalizarContaReceber';
 
-const registros = contasReceberLocTudoJson as RegistroContaReceberOrigem[];
+/**
+ * Dataset real de contas a receber/clientes da LOC Tudo — dado confidencial,
+ * não versionado (`.gitignore`). Import opcional via glob: em checkouts limpos
+ * (CI/deploy) os arquivos não existem e as listas ficam vazias, sem quebrar o build.
+ */
+const contasReceberModules = import.meta.glob<{ default: RegistroContaReceberOrigem[] }>('./data/contasReceberLocTudo.json', { eager: true });
+const registros = Object.values(contasReceberModules)[0]?.default ?? [];
+
+const clientesLocTudoModules = import.meta.glob<{ clientesLocTudo: Cliente[] }>('./clientesLocTudo.ts', { eager: true });
+const clientesLocTudo = Object.values(clientesLocTudoModules)[0]?.clientesLocTudo ?? [];
 
 const clienteIdPorNome = new Map(clientesLocTudo.map((cliente) => [cliente.nome, cliente.id]));
 

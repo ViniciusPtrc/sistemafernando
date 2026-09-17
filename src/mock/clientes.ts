@@ -1,6 +1,13 @@
 import type { Cliente } from '@/types';
 import { normalizarTexto } from '@/utils/listQuery';
-import { clientesLocTudo } from './clientesLocTudo';
+
+/**
+ * Dataset real de clientes da LOC Tudo — dado confidencial, não versionado
+ * (`.gitignore`). Import opcional via glob: em checkouts limpos (CI/deploy) o
+ * arquivo não existe e a lista fica vazia, sem quebrar o build.
+ */
+const clientesLocTudoModules = import.meta.glob<{ clientesLocTudo: Cliente[] }>('./clientesLocTudo.ts', { eager: true });
+const clientesLocTudo: Cliente[] = Object.values(clientesLocTudoModules)[0]?.clientesLocTudo ?? [];
 
 const clientesSinteticos: Cliente[] = [
   { id: 'cli-1', nome: 'Empresa Alpha Ltda.', documento: '12.345.678/0001-90', segmento: 'Indústria' },
