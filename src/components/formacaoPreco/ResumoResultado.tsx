@@ -148,8 +148,12 @@ export function ResumoResultado({ resultado, lucroPercentAlvo }: ResumoResultado
       {resultado.dre.length > 0 && (
         <Card>
           <div className="border-b border-graphite-200 p-4">
-            <h3 className="text-sm font-semibold text-graphite-900">DRE estimado</h3>
-            <p className="text-xs text-graphite-500">Como o preço mínimo se decompõe — quanto cada item consome do faturamento.</p>
+            <h3 className="text-sm font-semibold text-graphite-900">DRE estimado {contratoFechado ? '(ano 1)' : ''}</h3>
+            <p className="text-xs text-graphite-500">
+              {contratoFechado
+                ? 'Ano 1 do contrato — faturamento e custos anualizados. Anos seguintes entram na simulação plurianual à parte.'
+                : 'Como o preço mínimo se decompõe — quanto cada item consome do faturamento.'}
+            </p>
           </div>
           <div className="flex flex-col divide-y divide-graphite-100">
             {resultado.dre.map((linha) => (

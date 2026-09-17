@@ -150,9 +150,15 @@ export function calcularResultado(f: RascunhoFormacaoPreco): ResultadoFormacaoPr
    * Quando o contrato já está fechado (receita mensal informada), esse é o preço real
    * usado daqui pra baixo em vez do preço mínimo teórico — a ferramenta deixa de
    * "formar um preço" e passa a checar a viabilidade do preço que já foi negociado.
+   * Sempre anualizado (× 12), não × `mesesContrato`: os custos informados (mão de obra,
+   * materiais, equipamentos…) são do ANO 1, então o DRE/lucro precisam comparar receita
+   * e custo do mesmo período — mesmo num contrato de vários anos, cuja simulação
+   * ano a ano é feita à parte (aba "Simulações").
    */
   const contratoFechado = f.receitaMensalInformada != null && f.receitaMensalInformada > 0;
-  const precoAdotado = contratoFechado ? f.receitaMensalInformada! * meses : precoMinimo;
+  const precoAdotado = contratoFechado ? f.receitaMensalInformada! * 12 : precoMinimo;
+  /** Meses usados para converter `precoAdotado` em mensal/payback/ROI anualizado — sempre 12 quando fechado (ver comentário acima), senão a duração do contrato. */
+  const mesesReferenciaPreco = contratoFechado ? 12 : meses;
 
   const custosIndiretosValor = precoAdotado === null ? 0 : f.custosIndiretosPercent * precoAdotado;
   const tributosSobreCustoValor = precoAdotado === null ? 0 : (f.tributosSobreCustoPercent ?? 0) * precoAdotado;
@@ -174,15 +180,15 @@ export function calcularResultado(f: RascunhoFormacaoPreco): ResultadoFormacaoPr
   const custoTotalSemLucro = totalCustosComContingencia + custosIndiretosValor + tributosValor;
   const markupPercent = precoAdotado !== null && custoTotalSemLucro > 0 ? (lucroValor / custoTotalSemLucro) * 100 : null;
 
-  const valorMensal = precoAdotado === null ? null : precoAdotado / meses;
+  const valorMensal = precoAdotado === null ? null : precoAdotado / mesesReferenciaPreco;
   const valorAnual = valorMensal === null ? null : valorMensal * 12;
   const valorPorUnidade = precoAdotado === null || !f.quantidadeUnidades ? null : precoAdotado / f.quantidadeUnidades;
 
   /** Investimento inicial = aquisição de equipamentos + veículos + capital de giro + outros investimentos declarados. */
   const investimentoInicial = equipamentos.custoAquisicao + veiculosDepreciacao.custoAquisicao + capitalGiroNecessario + (cg.outrosInvestimentosIniciais ?? 0);
   const roiTotalPercent = precoAdotado !== null && investimentoInicial > 0 ? (lucroValor / investimentoInicial) * 100 : null;
-  const roiAnualPercent = roiTotalPercent === null ? null : roiTotalPercent / (meses / 12);
-  const paybackMeses = precoAdotado !== null && lucroValor > 0 ? investimentoInicial / (lucroValor / meses) : null;
+  const roiAnualPercent = roiTotalPercent === null ? null : roiTotalPercent / (mesesReferenciaPreco / 12);
+  const paybackMeses = precoAdotado !== null && lucroValor > 0 ? investimentoInicial / (lucroValor / mesesReferenciaPreco) : null;
 
   const dre =
     precoAdotado === null

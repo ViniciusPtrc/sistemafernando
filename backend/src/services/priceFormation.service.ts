@@ -223,9 +223,15 @@ export function computeResultado(doc: any) {
    * Quando o contrato já está fechado (receita mensal informada), esse é o preço real
    * usado daqui pra baixo em vez do preço mínimo teórico — a ferramenta deixa de
    * "formar um preço" e passa a checar a viabilidade do preço que já foi negociado.
+   * Sempre anualizado (× 12), não × `contractMonths`: os custos informados (mão de obra,
+   * materiais, equipamentos…) são do ANO 1, então o DRE/lucro precisam comparar receita
+   * e custo do mesmo período — mesmo num contrato de vários anos, cuja simulação
+   * ano a ano é feita à parte (aba "Simulações").
    */
   const closedContract = informedMonthlyRevenueCents !== null && informedMonthlyRevenueCents > 0;
-  const adoptedPriceCents = closedContract ? informedMonthlyRevenueCents! * contractMonths : minimumPriceCents;
+  const adoptedPriceCents = closedContract ? informedMonthlyRevenueCents! * 12 : minimumPriceCents;
+  /** Meses usados para converter `adoptedPriceCents` em mensal/payback/ROI anualizado — sempre 12 quando fechado (ver comentário acima), senão a duração do contrato. */
+  const monthsForPriceConversion = closedContract ? 12 : contractMonths;
 
   const indirectCostsValueCents = adoptedPriceCents === null ? 0 : Math.round(indirectCostsPercent * adoptedPriceCents);
   const costBasedTaxesValueCents = adoptedPriceCents === null ? 0 : Math.round(costBasedTaxesPercent * adoptedPriceCents);
@@ -250,10 +256,10 @@ export function computeResultado(doc: any) {
   /** Investimento inicial = aquisição de equipamentos + veículos + capital de giro + outros investimentos declarados. */
   const initialInvestmentCents = equipment.acquisitionCostCents + vehicleDepreciation.acquisitionCostCents + workingCapitalNeededCents + (wc.otherInitialInvestmentCents ?? 0);
   const roiTotalPercent = adoptedPriceCents !== null && initialInvestmentCents > 0 ? (profitValueCents / initialInvestmentCents) * 100 : null;
-  const roiAnnualPercent = roiTotalPercent === null ? null : roiTotalPercent / (contractMonths / 12);
-  const paybackMonths = adoptedPriceCents !== null && profitValueCents > 0 ? initialInvestmentCents / (profitValueCents / contractMonths) : null;
+  const roiAnnualPercent = roiTotalPercent === null ? null : roiTotalPercent / (monthsForPriceConversion / 12);
+  const paybackMonths = adoptedPriceCents !== null && profitValueCents > 0 ? initialInvestmentCents / (profitValueCents / monthsForPriceConversion) : null;
 
-  const monthlyValueCents = adoptedPriceCents === null ? null : Math.round(adoptedPriceCents / contractMonths);
+  const monthlyValueCents = adoptedPriceCents === null ? null : Math.round(adoptedPriceCents / monthsForPriceConversion);
   const annualValueCents = monthlyValueCents === null ? null : monthlyValueCents * 12;
   const unitCount = doc.unitCount ?? null;
   const valuePerUnitCents = adoptedPriceCents === null || !unitCount ? null : Math.round(adoptedPriceCents / unitCount);
