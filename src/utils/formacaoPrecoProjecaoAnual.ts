@@ -96,11 +96,29 @@ function construirRascunhoAno(f: RascunhoFormacaoPreco, plano: PlanoReajustePlur
   };
 }
 
+/**
+ * Nos anos 2+ não há novo investimento em equipamentos/veículos — a aquisição só
+ * acontece no ano 1 (mesmas máquinas continuam depreciando, só isso). `calcularResultado`
+ * não sabe disso (ela sempre soma o custo de aquisição atual ao investimento inicial),
+ * então aqui, fora dela, zeramos essa parcela e recalculamos ROI/payback só sobre o que
+ * de fato seria investido de novo naquele ano (capital de giro, se houver).
+ */
+function zerarInvestimentoJaRealizado(resultado: ResultadoFormacaoPreco, rascunhoAno: RascunhoFormacaoPreco): ResultadoFormacaoPreco {
+  const investimentoInicial = resultado.capitalGiroNecessario;
+  const mesesRef = rascunhoAno.receitaMensalInformada != null && rascunhoAno.receitaMensalInformada > 0 ? 12 : rascunhoAno.mesesContrato || 12;
+  const roiTotalPercent = investimentoInicial > 0 ? (resultado.lucroValor / investimentoInicial) * 100 : null;
+  const roiAnualPercent = roiTotalPercent === null ? null : roiTotalPercent / (mesesRef / 12);
+  const paybackMeses = investimentoInicial > 0 && resultado.lucroValor > 0 ? investimentoInicial / (resultado.lucroValor / mesesRef) : null;
+  return { ...resultado, investimentoInicial, roiTotalPercent, roiAnualPercent, paybackMeses };
+}
+
 export function projetarAnos(f: RascunhoFormacaoPreco, plano: PlanoReajustePlurianual): AnoProjetado[] {
   const anos: AnoProjetado[] = [];
   for (let ano = 1; ano <= plano.anosAdicionais + 1; ano++) {
     const rascunhoAno = construirRascunhoAno(f, plano, ano);
-    anos.push({ ano, rascunho: rascunhoAno, resultado: calcularResultado(rascunhoAno) });
+    const resultadoBruto = calcularResultado(rascunhoAno);
+    const resultado = ano === 1 ? resultadoBruto : zerarInvestimentoJaRealizado(resultadoBruto, rascunhoAno);
+    anos.push({ ano, rascunho: rascunhoAno, resultado });
   }
   return anos;
 }

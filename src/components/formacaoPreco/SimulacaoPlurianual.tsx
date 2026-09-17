@@ -199,6 +199,30 @@ export function SimulacaoPlurianual({ rascunho }: SimulacaoPlurianualProps) {
                   </td>
                 ))}
               </tr>
+              <tr>
+                <td className="py-1.5 text-graphite-600">
+                  Investimento inicial <span className="text-[11px] text-graphite-400">(equip./veíc. só no ano 1)</span>
+                </td>
+                {anos.map((a) => (
+                  <td key={a.ano} className="py-1.5 text-right text-graphite-700">{formatCurrency(a.resultado.investimentoInicial)}</td>
+                ))}
+              </tr>
+              <tr>
+                <td className="py-1.5 text-graphite-600">ROI anual</td>
+                {anos.map((a) => (
+                  <td key={a.ano} className="py-1.5 text-right text-graphite-700">
+                    {a.resultado.roiAnualPercent === null ? 'N/A' : formatPercent(a.resultado.roiAnualPercent)}
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td className="py-1.5 text-graphite-600">Payback</td>
+                {anos.map((a) => (
+                  <td key={a.ano} className="py-1.5 text-right text-graphite-700">
+                    {a.resultado.paybackMeses === null ? 'N/A' : `${a.resultado.paybackMeses.toFixed(1)} meses`}
+                  </td>
+                ))}
+              </tr>
             </tbody>
           </table>
         </CardContent>
