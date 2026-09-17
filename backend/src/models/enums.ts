@@ -52,3 +52,6 @@ export type ContractCostType = (typeof CONTRACT_COST_TYPES)[number];
  */
 export const CONTRACT_COST_RECURRENCES = ['once', 'installment', 'fixed'] as const;
 export type ContractCostRecurrence = (typeof CONTRACT_COST_RECURRENCES)[number];
+
+export const TAX_REGIMES = ['simples', 'presumido', 'real'] as const;
+export type TaxRegime = (typeof TAX_REGIMES)[number];

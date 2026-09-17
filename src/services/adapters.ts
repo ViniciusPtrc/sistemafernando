@@ -4,6 +4,9 @@
  * aqui mantém componentes e páginas intactos.
  */
 import type {
+  BlocoItens,
+  BlocoMaoDeObra,
+  CapitalGiro,
   ClassificacaoMargem,
   ContaPagar,
   ContaReceber,
@@ -12,12 +15,19 @@ import type {
   ContratoProjecao,
   CustoContrato,
   DashboardFinanceiro,
+  FormacaoPreco,
   LancamentoFluxoCaixa,
+  LinhaAtivo,
+  LinhaCombustivel,
+  LinhaCusto,
+  LinhaMaoDeObra,
+  LinhaTributo,
   MargemMensal,
   MargemPorContrato,
   MargemResumo,
   PayableVinculavel,
   PontoFluxoCaixa,
+  RascunhoFormacaoPreco,
   ReceitaVinculavel,
   RespostaPaginada,
   StatusConta,
@@ -702,5 +712,460 @@ export function mapLinkablePayable(dto: LinkablePayableDTO): PayableVinculavel {
     vencimento: dto.dueDate,
     valor: centsToReais(dto.amountCents),
     status: dto.status,
+  };
+}
+
+/* ------------------------------ Formação de Preço ------------------------------ */
+
+interface LineItemDTO {
+  _id: string;
+  description: string;
+  quantity: number;
+  timesPerYear: number;
+  unitCostCents: number;
+}
+
+interface LaborLineItemDTO {
+  _id: string;
+  description: string;
+  quantity: number;
+  monthlySalaryCents: number;
+  dailyHoursDedication: number;
+  timesPerYear: number;
+}
+
+interface TaxLineItemDTO {
+  _id: string;
+  name: string;
+  ratePercent: number;
+  note: string;
+}
+
+interface AssetItemDTO {
+  _id: string;
+  description: string;
+  quantity: number;
+  unitCostCents: number;
+}
+
+interface FuelItemDTO {
+  _id: string;
+  description: string;
+  quantity: number;
+  kmPerYear: number;
+  kmPerLiter: number;
+  pricePerLiterCents: number;
+}
+
+interface LaborBlockDTO {
+  items: LaborLineItemDTO[];
+  payrollChargesPercent: number;
+  overtimePercent: number;
+  hazardPayPercent: number;
+  otherAllowancesPercent: number;
+}
+
+interface ItemsBlockDTO {
+  items: LineItemDTO[];
+}
+
+interface EquipmentBlockDTO {
+  items: AssetItemDTO[];
+  residualValuePercent: number;
+  capitalMonthlyRatePercent: number;
+  capitalPeriodMonths: number;
+}
+
+interface VehicleBlockDTO {
+  depreciationItems: AssetItemDTO[];
+  residualValuePercent: number;
+  capitalMonthlyRatePercent: number;
+  capitalPeriodMonths: number;
+  maintenanceItems: LineItemDTO[];
+  fuelItems: FuelItemDTO[];
+}
+
+interface OtherLaborCostsBlockDTO {
+  medicalExpenses: ItemsBlockDTO;
+  subcontracting: ItemsBlockDTO;
+}
+
+interface TaxesBlockDTO {
+  items: TaxLineItemDTO[];
+}
+
+interface WorkingCapitalDTO {
+  receiptTermDays: number;
+  paymentTermDays: number;
+  monthlyFinancialRatePercent: number;
+  otherInitialInvestmentCents: number;
+}
+
+interface ResultadoBlocoMaoDeObraDTO {
+  subtotalCents: number;
+  totalCents: number;
+}
+
+interface ResultadoBlocoAtivoDTO {
+  acquisitionCostCents: number;
+  residualValueCents: number;
+  depreciationCents: number;
+  capitalReturnCents: number;
+  totalCents: number;
+}
+
+interface LinhaDreDTO {
+  label: string;
+  valorCents: number;
+  percentualDaReceita: number;
+}
+
+interface ComparacaoReferenciaDTO {
+  referencePriceCents: number;
+  lucroRealCents: number;
+  margemRealPct: number;
+  viavel: boolean;
+  diferencaCents: number | null;
+}
+
+interface ResultadoDTO {
+  maoDeObra: {
+    direta: ResultadoBlocoMaoDeObraDTO;
+    indireta: ResultadoBlocoMaoDeObraDTO;
+    assistenciaMedicaCents: number;
+    despesaMoradiaCents: number;
+    uniformeEpiCents: number;
+    alimentacaoCents: number;
+    outrosCustosCents: number;
+    totalCents: number;
+  };
+  materiais: { aplicacaoCents: number; outrosCents: number; totalCents: number };
+  equipamentos: ResultadoBlocoAtivoDTO;
+  veiculos: { depreciacao: ResultadoBlocoAtivoDTO; manutencaoCents: number; combustivelCents: number; totalCents: number };
+  totalCustosDiretosCents: number;
+  custosIndiretosValorCents: number;
+  lucroValorCents: number;
+  tributosValorCents: number;
+  precoMinimoCents: number | null;
+  precoEquilibrioCents: number | null;
+  markupPercent: number | null;
+  valorMensalCents: number | null;
+  valorAnualCents: number | null;
+  valorPorUnidadeCents: number | null;
+  contingenciaValorCents: number;
+  custoFinanceiroValorCents: number;
+  totalCustosComContingenciaCents: number;
+  capitalGiroNecessarioCents: number;
+  investimentoInicialCents: number;
+  roiTotalPercent: number | null;
+  roiAnualPercent: number | null;
+  paybackMeses: number | null;
+  dre: LinhaDreDTO[];
+  comparacaoReferencia: ComparacaoReferenciaDTO | null;
+  totalServicosDfpCents: number | null;
+  receitaAnualInformadaCents: number | null;
+  resultadoContratoInformadoCents: number | null;
+}
+
+export interface PriceFormationDTO {
+  id: string;
+  companyId: string;
+  name: string;
+  agency: string;
+  object: string;
+  biddingNumber: string;
+  taxRegime: string;
+  notes: string;
+  directLabor: LaborBlockDTO;
+  indirectLabor: LaborBlockDTO;
+  medicalAssistance: ItemsBlockDTO;
+  housingExpense: ItemsBlockDTO;
+  uniformAndPpe: ItemsBlockDTO;
+  foodAllowance: ItemsBlockDTO;
+  otherLaborCosts: OtherLaborCostsBlockDTO;
+  materialsApplication: ItemsBlockDTO;
+  otherMaterials: ItemsBlockDTO;
+  equipment: EquipmentBlockDTO;
+  vehicles: VehicleBlockDTO;
+  contractMonths: number;
+  unitCount: number | null;
+  dailyFullTimeHours: number;
+  taxes: TaxesBlockDTO;
+  contingencyPercent: number;
+  workingCapital: WorkingCapitalDTO;
+  indirectCostsPercent: number;
+  profitPercent: number;
+  costBasedTaxesPercent: number;
+  revenueBasedTaxesPercent: number;
+  informedMonthlyRevenueCents: number | null;
+  referencePriceCents: number | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  resultado: ResultadoDTO;
+}
+
+function mapLinhaCusto(dto: LineItemDTO): LinhaCusto {
+  return { id: dto._id, descricao: dto.description, quantidade: dto.quantity, vezesPorAno: dto.timesPerYear, valorUnitario: centsToReais(dto.unitCostCents) };
+}
+
+function mapLinhaMaoDeObra(dto: LaborLineItemDTO): LinhaMaoDeObra {
+  return {
+    id: dto._id,
+    descricao: dto.description,
+    quantidade: dto.quantity,
+    meses: dto.timesPerYear,
+    dedicacaoHorasDia: dto.dailyHoursDedication,
+    salarioMensal: centsToReais(dto.monthlySalaryCents),
+  };
+}
+
+function mapLinhaTributo(dto: TaxLineItemDTO): LinhaTributo {
+  return { id: dto._id, nome: dto.name, aliquotaPercent: dto.ratePercent, observacao: dto.note ?? '' };
+}
+
+function mapLinhaAtivo(dto: AssetItemDTO): LinhaAtivo {
+  return { id: dto._id, descricao: dto.description, quantidade: dto.quantity, valorUnitario: centsToReais(dto.unitCostCents) };
+}
+
+function mapLinhaCombustivel(dto: FuelItemDTO): LinhaCombustivel {
+  return { id: dto._id, descricao: dto.description, quantidade: dto.quantity, kmPorAno: dto.kmPerYear, kmPorLitro: dto.kmPerLiter, precoLitro: centsToReais(dto.pricePerLiterCents) };
+}
+
+function mapBlocoMaoDeObra(dto: LaborBlockDTO): BlocoMaoDeObra {
+  return {
+    itens: dto.items.map(mapLinhaMaoDeObra),
+    encargosSociaisPercent: dto.payrollChargesPercent,
+    horaExtraPercent: dto.overtimePercent,
+    periculosidadePercent: dto.hazardPayPercent,
+    outrosAdicionaisPercent: dto.otherAllowancesPercent,
+  };
+}
+
+function mapBlocoItens(dto: ItemsBlockDTO): BlocoItens {
+  return { itens: dto.items.map(mapLinhaCusto) };
+}
+
+function mapCapitalGiro(dto: WorkingCapitalDTO): CapitalGiro {
+  return {
+    prazoRecebimentoDias: dto.receiptTermDays,
+    prazoPagamentoDias: dto.paymentTermDays,
+    taxaFinanceiraMensalPercent: dto.monthlyFinancialRatePercent,
+    outrosInvestimentosIniciais: centsToReais(dto.otherInitialInvestmentCents),
+  };
+}
+
+function mapResultadoBlocoMaoDeObra(dto: ResultadoBlocoMaoDeObraDTO) {
+  return { subtotal: centsToReais(dto.subtotalCents), total: centsToReais(dto.totalCents) };
+}
+
+function mapResultadoBlocoAtivo(dto: ResultadoBlocoAtivoDTO) {
+  return {
+    custoAquisicao: centsToReais(dto.acquisitionCostCents),
+    valorResidual: centsToReais(dto.residualValueCents),
+    depreciacao: centsToReais(dto.depreciationCents),
+    remuneracaoCapital: centsToReais(dto.capitalReturnCents),
+    total: centsToReais(dto.totalCents),
+  };
+}
+
+export function mapPriceFormation(dto: PriceFormationDTO): FormacaoPreco {
+  return {
+    id: dto.id,
+    companyId: dto.companyId,
+    nome: dto.name,
+    orgao: dto.agency,
+    objeto: dto.object,
+    numeroPregao: dto.biddingNumber,
+    regimeTributario: (dto.taxRegime as FormacaoPreco['regimeTributario']) || '',
+    observacoes: dto.notes,
+    maoDeObraDireta: mapBlocoMaoDeObra(dto.directLabor),
+    maoDeObraIndireta: mapBlocoMaoDeObra(dto.indirectLabor),
+    assistenciaMedica: mapBlocoItens(dto.medicalAssistance),
+    despesaMoradia: mapBlocoItens(dto.housingExpense),
+    uniformeEpi: mapBlocoItens(dto.uniformAndPpe),
+    alimentacao: mapBlocoItens(dto.foodAllowance),
+    outrosCustosMaoDeObra: {
+      despesasMedicas: mapBlocoItens(dto.otherLaborCosts.medicalExpenses),
+      subcontratacoes: mapBlocoItens(dto.otherLaborCosts.subcontracting),
+    },
+    materiaisAplicacao: mapBlocoItens(dto.materialsApplication),
+    outrosMateriais: mapBlocoItens(dto.otherMaterials),
+    equipamentos: {
+      itens: dto.equipment.items.map(mapLinhaAtivo),
+      valorResidualPercent: dto.equipment.residualValuePercent,
+      capitalTaxaMensalPercent: dto.equipment.capitalMonthlyRatePercent,
+      capitalPeriodoMeses: dto.equipment.capitalPeriodMonths,
+    },
+    veiculos: {
+      itensDepreciacao: dto.vehicles.depreciationItems.map(mapLinhaAtivo),
+      valorResidualPercent: dto.vehicles.residualValuePercent,
+      capitalTaxaMensalPercent: dto.vehicles.capitalMonthlyRatePercent,
+      capitalPeriodoMeses: dto.vehicles.capitalPeriodMonths,
+      itensManutencao: dto.vehicles.maintenanceItems.map(mapLinhaCusto),
+      itensCombustivel: dto.vehicles.fuelItems.map(mapLinhaCombustivel),
+    },
+    mesesContrato: dto.contractMonths,
+    jornadaIntegralHorasDia: dto.dailyFullTimeHours,
+    quantidadeUnidades: dto.unitCount,
+    tributos: { itens: dto.taxes.items.map(mapLinhaTributo) },
+    contingenciaPercent: dto.contingencyPercent,
+    capitalGiro: mapCapitalGiro(dto.workingCapital),
+    custosIndiretosPercent: dto.indirectCostsPercent,
+    lucroPercent: dto.profitPercent,
+    tributosSobreCustoPercent: dto.costBasedTaxesPercent,
+    tributosSobreReceitaPercent: dto.revenueBasedTaxesPercent,
+    receitaMensalInformada: dto.informedMonthlyRevenueCents == null ? null : centsToReais(dto.informedMonthlyRevenueCents),
+    precoReferencia: dto.referencePriceCents == null ? null : centsToReais(dto.referencePriceCents),
+    criadoEm: dto.createdAt,
+    atualizadoEm: dto.updatedAt,
+    resultado: {
+      maoDeObra: {
+        direta: mapResultadoBlocoMaoDeObra(dto.resultado.maoDeObra.direta),
+        indireta: mapResultadoBlocoMaoDeObra(dto.resultado.maoDeObra.indireta),
+        assistenciaMedica: centsToReais(dto.resultado.maoDeObra.assistenciaMedicaCents),
+        despesaMoradia: centsToReais(dto.resultado.maoDeObra.despesaMoradiaCents),
+        uniformeEpi: centsToReais(dto.resultado.maoDeObra.uniformeEpiCents),
+        alimentacao: centsToReais(dto.resultado.maoDeObra.alimentacaoCents),
+        outrosCustos: centsToReais(dto.resultado.maoDeObra.outrosCustosCents),
+        total: centsToReais(dto.resultado.maoDeObra.totalCents),
+      },
+      materiais: {
+        aplicacao: centsToReais(dto.resultado.materiais.aplicacaoCents),
+        outros: centsToReais(dto.resultado.materiais.outrosCents),
+        total: centsToReais(dto.resultado.materiais.totalCents),
+      },
+      equipamentos: mapResultadoBlocoAtivo(dto.resultado.equipamentos),
+      veiculos: {
+        depreciacao: mapResultadoBlocoAtivo(dto.resultado.veiculos.depreciacao),
+        manutencao: centsToReais(dto.resultado.veiculos.manutencaoCents),
+        combustivel: centsToReais(dto.resultado.veiculos.combustivelCents),
+        total: centsToReais(dto.resultado.veiculos.totalCents),
+      },
+      totalCustosDiretos: centsToReais(dto.resultado.totalCustosDiretosCents),
+      custosIndiretosValor: centsToReais(dto.resultado.custosIndiretosValorCents),
+      lucroValor: centsToReais(dto.resultado.lucroValorCents),
+      tributosValor: centsToReais(dto.resultado.tributosValorCents),
+      precoMinimo: dto.resultado.precoMinimoCents == null ? null : centsToReais(dto.resultado.precoMinimoCents),
+      precoEquilibrio: dto.resultado.precoEquilibrioCents == null ? null : centsToReais(dto.resultado.precoEquilibrioCents),
+      markupPercent: dto.resultado.markupPercent,
+      valorMensal: dto.resultado.valorMensalCents == null ? null : centsToReais(dto.resultado.valorMensalCents),
+      valorAnual: dto.resultado.valorAnualCents == null ? null : centsToReais(dto.resultado.valorAnualCents),
+      valorPorUnidade: dto.resultado.valorPorUnidadeCents == null ? null : centsToReais(dto.resultado.valorPorUnidadeCents),
+      contingenciaValor: centsToReais(dto.resultado.contingenciaValorCents),
+      custoFinanceiroValor: centsToReais(dto.resultado.custoFinanceiroValorCents),
+      totalCustosComContingencia: centsToReais(dto.resultado.totalCustosComContingenciaCents),
+      capitalGiroNecessario: centsToReais(dto.resultado.capitalGiroNecessarioCents),
+      investimentoInicial: centsToReais(dto.resultado.investimentoInicialCents),
+      roiTotalPercent: dto.resultado.roiTotalPercent,
+      roiAnualPercent: dto.resultado.roiAnualPercent,
+      paybackMeses: dto.resultado.paybackMeses,
+      dre: dto.resultado.dre.map((l) => ({ label: l.label, valor: centsToReais(l.valorCents), percentualDaReceita: l.percentualDaReceita })),
+      comparacaoReferencia:
+        dto.resultado.comparacaoReferencia == null
+          ? null
+          : {
+              precoReferencia: centsToReais(dto.resultado.comparacaoReferencia.referencePriceCents),
+              lucroReal: centsToReais(dto.resultado.comparacaoReferencia.lucroRealCents),
+              margemRealPct: dto.resultado.comparacaoReferencia.margemRealPct,
+              viavel: dto.resultado.comparacaoReferencia.viavel,
+              diferenca: dto.resultado.comparacaoReferencia.diferencaCents == null ? null : centsToReais(dto.resultado.comparacaoReferencia.diferencaCents),
+            },
+      totalServicosDfp: dto.resultado.totalServicosDfpCents == null ? null : centsToReais(dto.resultado.totalServicosDfpCents),
+      receitaAnualInformada: dto.resultado.receitaAnualInformadaCents == null ? null : centsToReais(dto.resultado.receitaAnualInformadaCents),
+      resultadoContratoInformado: dto.resultado.resultadoContratoInformadoCents == null ? null : centsToReais(dto.resultado.resultadoContratoInformadoCents),
+    },
+  };
+}
+
+const reaisParaCentavos = (v: number): number => Math.round((v || 0) * 100);
+
+function payloadLinhaCusto(l: LinhaCusto) {
+  return { description: l.descricao.trim(), quantity: l.quantidade, timesPerYear: l.vezesPorAno, unitCostCents: reaisParaCentavos(l.valorUnitario) };
+}
+
+function payloadLinhaMaoDeObra(l: LinhaMaoDeObra) {
+  return {
+    description: l.descricao.trim(),
+    quantity: l.quantidade,
+    monthlySalaryCents: reaisParaCentavos(l.salarioMensal),
+    dailyHoursDedication: l.dedicacaoHorasDia,
+    timesPerYear: l.meses,
+  };
+}
+
+function payloadLinhaTributo(l: LinhaTributo) {
+  return { name: l.nome.trim(), ratePercent: l.aliquotaPercent, note: l.observacao.trim() };
+}
+
+function payloadLinhaAtivo(l: LinhaAtivo) {
+  return { description: l.descricao.trim(), quantity: l.quantidade, unitCostCents: reaisParaCentavos(l.valorUnitario) };
+}
+
+function payloadLinhaCombustivel(l: LinhaCombustivel) {
+  return { description: l.descricao.trim(), quantity: l.quantidade, kmPerYear: l.kmPorAno, kmPerLiter: l.kmPorLitro || 1, pricePerLiterCents: reaisParaCentavos(l.precoLitro) };
+}
+
+function payloadBlocoMaoDeObra(b: BlocoMaoDeObra) {
+  return {
+    items: b.itens.map(payloadLinhaMaoDeObra),
+    payrollChargesPercent: b.encargosSociaisPercent,
+    overtimePercent: b.horaExtraPercent,
+    hazardPayPercent: b.periculosidadePercent,
+    otherAllowancesPercent: b.outrosAdicionaisPercent,
+  };
+}
+
+export function buildPriceFormationPayload(f: RascunhoFormacaoPreco) {
+  return {
+    companyId: f.companyId,
+    name: f.nome.trim(),
+    agency: f.orgao.trim(),
+    object: f.objeto.trim(),
+    biddingNumber: f.numeroPregao.trim(),
+    taxRegime: f.regimeTributario || '',
+    notes: f.observacoes.trim(),
+    directLabor: payloadBlocoMaoDeObra(f.maoDeObraDireta),
+    indirectLabor: payloadBlocoMaoDeObra(f.maoDeObraIndireta),
+    medicalAssistance: { items: f.assistenciaMedica.itens.map(payloadLinhaCusto) },
+    housingExpense: { items: f.despesaMoradia.itens.map(payloadLinhaCusto) },
+    uniformAndPpe: { items: f.uniformeEpi.itens.map(payloadLinhaCusto) },
+    foodAllowance: { items: f.alimentacao.itens.map(payloadLinhaCusto) },
+    otherLaborCosts: {
+      medicalExpenses: { items: f.outrosCustosMaoDeObra.despesasMedicas.itens.map(payloadLinhaCusto) },
+      subcontracting: { items: f.outrosCustosMaoDeObra.subcontratacoes.itens.map(payloadLinhaCusto) },
+    },
+    materialsApplication: { items: f.materiaisAplicacao.itens.map(payloadLinhaCusto) },
+    otherMaterials: { items: f.outrosMateriais.itens.map(payloadLinhaCusto) },
+    equipment: {
+      items: f.equipamentos.itens.map(payloadLinhaAtivo),
+      residualValuePercent: f.equipamentos.valorResidualPercent,
+      capitalMonthlyRatePercent: f.equipamentos.capitalTaxaMensalPercent,
+      capitalPeriodMonths: f.equipamentos.capitalPeriodoMeses,
+    },
+    vehicles: {
+      depreciationItems: f.veiculos.itensDepreciacao.map(payloadLinhaAtivo),
+      residualValuePercent: f.veiculos.valorResidualPercent,
+      capitalMonthlyRatePercent: f.veiculos.capitalTaxaMensalPercent,
+      capitalPeriodMonths: f.veiculos.capitalPeriodoMeses,
+      maintenanceItems: f.veiculos.itensManutencao.map(payloadLinhaCusto),
+      fuelItems: f.veiculos.itensCombustivel.map(payloadLinhaCombustivel),
+    },
+    contractMonths: f.mesesContrato,
+    dailyFullTimeHours: f.jornadaIntegralHorasDia,
+    unitCount: f.quantidadeUnidades,
+    taxes: { items: f.tributos.itens.map(payloadLinhaTributo) },
+    contingencyPercent: f.contingenciaPercent,
+    workingCapital: {
+      receiptTermDays: f.capitalGiro.prazoRecebimentoDias,
+      paymentTermDays: f.capitalGiro.prazoPagamentoDias,
+      monthlyFinancialRatePercent: f.capitalGiro.taxaFinanceiraMensalPercent,
+      otherInitialInvestmentCents: reaisParaCentavos(f.capitalGiro.outrosInvestimentosIniciais),
+    },
+    indirectCostsPercent: f.custosIndiretosPercent,
+    profitPercent: f.lucroPercent,
+    costBasedTaxesPercent: f.tributosSobreCustoPercent,
+    revenueBasedTaxesPercent: f.tributosSobreReceitaPercent,
+    informedMonthlyRevenueCents: f.receitaMensalInformada == null ? null : reaisParaCentavos(f.receitaMensalInformada),
+    referencePriceCents: f.precoReferencia == null ? null : reaisParaCentavos(f.precoReferencia),
   };
 }

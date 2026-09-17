@@ -5,6 +5,7 @@ import companyRoutes from './company.routes';
 import analyticsRoutes from './analytics.routes';
 import importRoutes from './import.routes';
 import contractRoutes from './contract.routes';
+import priceFormationRoutes from './priceFormation.routes';
 
 const api = Router();
 
@@ -15,5 +16,6 @@ api.use('/payables', entryRouter('payable'));
 api.use(analyticsRoutes);
 api.use(importRoutes);
 api.use(contractRoutes);
+api.use(priceFormationRoutes);
 
 export default api;

@@ -11,6 +11,8 @@ import ImportacaoPage from '@/pages/Importacao';
 import ConfiguracoesPage from '@/pages/Configuracoes';
 import MargemContratosPage from '@/pages/MargemContratos';
 import ContratoDetalhePage from '@/pages/ContratoDetalhe';
+import FormacaoPrecoPage from '@/pages/FormacaoPreco';
+import FormacaoPrecoDetalhePage from '@/pages/FormacaoPrecoDetalhe';
 import NotFoundPage from '@/pages/NotFound';
 
 export default function App() {
@@ -27,6 +29,8 @@ export default function App() {
               <Route path="relatorios" element={<RelatoriosPage />} />
               <Route path="margem-contratos" element={<MargemContratosPage />} />
               <Route path="margem-contratos/:id" element={<ContratoDetalhePage />} />
+              <Route path="formacao-preco" element={<FormacaoPrecoPage />} />
+              <Route path="formacao-preco/:id" element={<FormacaoPrecoDetalhePage />} />
               <Route path="importacao" element={<ImportacaoPage />} />
               <Route path="configuracoes" element={<ConfiguracoesPage />} />
               <Route path="*" element={<NotFoundPage />} />

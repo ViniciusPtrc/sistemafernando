@@ -35,3 +35,6 @@ dist-ssr
 backend/src/data/contasReceberLocTudo.json
 src/mock/data/contasReceberLocTudo.json
 src/mock/clientesLocTudo.ts
+
+.vercel
+.env*
